@@ -1,0 +1,23 @@
+{
+  "name": "mindplay/kissform",
+  "type": "library",
+  "description": "Model-driven form rendering and input validation",
+  "license": "LGPL-3.0+",
+  "authors": [
+    {
+      "name": "Rasmus Schultz",
+      "email": "rasmus@mindplay.dk"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "require-dev": {
+    "phpunit/php-code-coverage": "~2"
+  },
+  "autoload": {
+    "psr-4": {
+      "mindplay\\kissform\\": "src/"
+    }
+  }
+}
