@@ -67,7 +67,7 @@ if (isset($_POST['form'])) {
         ->required($t->first_name)
         ->required($t->last_name)
         ->required($t->amount)
-        ->numeric($t->amount)
+        ->int($t->amount)
         ->checked($t->i_agree);
 
     if ($validator->invalid) {

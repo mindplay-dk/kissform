@@ -2,6 +2,7 @@
 
 use mindplay\kissform\BoolField;
 use mindplay\kissform\EnumField;
+use mindplay\kissform\Field;
 use mindplay\kissform\FormHelper;
 use mindplay\kissform\IntField;
 use mindplay\kissform\TextField;
@@ -15,8 +16,6 @@ if (coverage()) {
     $filter = coverage()->filter();
 
     $filter->addDirectoryToWhitelist(dirname(__DIR__) . '/src');
-
-    coverage()->setProcessUncoveredFilesFromWhitelist(true);
 
     coverage()->start('test');
 }
@@ -57,6 +56,9 @@ class SampleDescriptor
 
 class ValidationDescriptor
 {
+    const CAUSE_PROGRAMMERS = 'p';
+    const CAUSE_ARTISTS = 'a';
+
     /** @var TextField */
     public $email;
 
@@ -72,6 +74,9 @@ class ValidationDescriptor
     /** @var BoolField */
     public $agree;
 
+    /** @var EnumField */
+    public $cause;
+
     public function __construct()
     {
         $this->email = new TextField('email');
@@ -79,10 +84,47 @@ class ValidationDescriptor
         $this->confirm_email = new TextField('confirm_email');
 
         $this->donation = new IntField('donation');
+        $this->donation->min_value = 100;
+        $this->donation->max_value = 1000;
 
         $this->password = new TextField('password');
 
         $this->agree = new BoolField('agree');
+
+        $this->cause = new EnumField('cause');
+        $this->cause->options = array(
+            self::CAUSE_PROGRAMMERS => 'Starving Programmers',
+            self::CAUSE_ARTISTS => 'Starving Artists',
+        );
+    }
+}
+
+/**
+ * Test a validation function against known valid and invalid values.
+ *
+ * @param Field    $field    Field instance where $name === 'value'
+ * @param Closure  $function function (FormValidator $v, Field $f): void; should invoke the validation function
+ * @param string[] $valid    list of valid values
+ * @param string[] $invalid  list of invalid values
+ */
+function testValidator(Field $field, $function, array $valid, array $invalid)
+{
+    $field->label = 'Value';
+
+    foreach ($valid as $valid_value) {
+        $validator = new FormValidator(array('value' => $valid_value));
+
+        call_user_func($function, $validator, $field);
+
+        ok(!isset($validator->errors['value']), "field " . get_class($field) . " validates value: " . format($valid_value));
+    }
+
+    foreach ($invalid as $invalid_value) {
+        $validator = new FormValidator(array('value' => $invalid_value));
+
+        call_user_func($function, $validator, $field);
+
+        ok(isset($validator->errors['value']), "field " . get_class($field) . " rejects value: " . format($invalid_value) . " (" . @$validator->errors['value'] . ")");
     }
 }
 
@@ -263,76 +305,216 @@ test(
 );
 
 test(
-    'can validate input',
+    'validate required()',
     function () {
-        $type = new ValidationDescriptor();
+        testValidator(
+            new TextField('value'),
+            function (FormValidator $v, Field $f) {
+                $v->required($f);
+            },
+            array('a', 'bbb'),
+            array('', null)
+        );
+    }
+);
 
-        $validator = new FormValidator(array(
-            'email' => 'jdoe@email.com',
-            'confirm_email' => 'jdoe@emaiiil.com', // bad e-mail
-            'donation' => 'megabucks', // not a number
-        ));
+test(
+    'validate email()',
+    function () {
+        testValidator(
+            new TextField('value'),
+            function (FormValidator $v, TextField $f) {
+                $v->email($f);
+            },
+            array('a@b.com', 'foo@bar.dk'),
+            array(123, '123', 'foo@', '@foo.com')
+        );
+    }
+);
 
-        $validator
-            ->title($type->email, 'E-mail Address')
-            ->required($type->email)
-            ->email($type->email)
-            ->confirm($type->email, $type->confirm_email)
-            ->numeric($type->donation);
+test(
+    'validate range()',
+    function () {
+        $int_field = new IntField('value');
+        $int_field->min_value = 100;
+        $int_field->max_value = 1000;
 
-        ok(!isset($validator->errors['email']), 'email validation succeeds');
-        ok(isset($validator->errors['confirm_email']), 'confirmation fails');
-        ok(isset($validator->errors['donation']), 'donation is not a number');
+        testValidator(
+            $int_field,
+            function (FormValidator $v, IntField $f) {
+                $v->range($f);
+            },
+            array(100, 500, 1000),
+            array(99, 1001, -1, null, '')
+        );
+    }
+);
 
-        $validator->reset();
+test(
+    'validate minValue()',
+    function () {
+        $int_field = new IntField('value');
+        $int_field->min_value = 100;
 
-        $validator->state['email'] = 'botched_it!';
-        $validator->state['donation'] = '100';
+        testValidator(
+            $int_field,
+            function (FormValidator $v, IntField $f) {
+                $v->minValue($f);
+            },
+            array(100, 1000),
+            array(-1, 0, null, '')
+        );
+    }
+);
 
-        $validator
-            ->email($type->email)
-            ->numeric($type->donation);
+test(
+    'validate maxValue()',
+    function () {
+        $int_field = new IntField('value');
+        $int_field->max_value = 1000;
 
-        ok(isset($validator->errors['email']), 'email validation fails');
-        ok(!isset($validator->errors['donation']), 'numeric validation succeeds');
+        testValidator(
+            $int_field,
+            function (FormValidator $v, IntField $f) {
+                $v->maxValue($f);
+            },
+            array(-1, 0, 1000),
+            array(1001, null, '')
+        );
+    }
+);
 
-        // length and password validations, against an array:
+test(
+    'validate int()',
+    function () {
+        testValidator(
+            new IntField('value'),
+            function (FormValidator $v, IntField $f) {
+                $v->int($f);
+            },
+            array('0', '-1', '1', '123'),
+            array('', null, '-', 'foo', '0.0', '1.0', '123.4')
+        );
+    }
+);
 
-        $validator->state['password'] = '';
-        $validator->required($type->password);
-        ok(isset($validator->errors['password']), 'input is required');
+test(
+    'validate numeric()',
+    function () {
+        testValidator(
+            new IntField('value'),
+            function (FormValidator $v, IntField $f) {
+                $v->numeric($f);
+            },
+            array('0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1'),
+            array('', null, '-', 'foo')
+        );
+    }
+);
 
-        $validator->clear($type->password);
-        $validator->state['password'] = 'aaaaaa';
-        $validator->required($type->password);
-        ok(!isset($validator->errors['password']), 'passes required validation');
+test(
+    'validate confirm()',
+    function () {
+        $field = new TextField('value');
+        $other = new TextField('other');
 
-        $validator->clear($type->password);
-        $validator->length($type->password, 1, 6);
-        ok(!isset($validator->errors['password']), 'length in range');
+        $validator = new FormValidator(array('value' => 'foo', 'other' => 'foo'));
+        $validator->confirm($field, $other);
+        ok(!isset($validator->errors['value']), 'value field has no error');
+        ok(!isset($validator->errors['other']), 'other field has no error');
 
-        $validator->length($type->password, 8, 20);
-        ok(isset($validator->errors['password']), 'length out of range');
+        $validator = new FormValidator(array('value' => 'foo', 'other' => 'bar'));
+        $validator->confirm($field, $other);
+        ok(!isset($validator->errors['value']), 'value field has no error');
+        ok(isset($validator->errors['other']), 'other field has error');
+    }
+);
 
-        $validator->clear($type->password);
-        ok(!isset($validator->errors['password']), 'error cleared');
+test(
+    'validate length()',
+    function () {
+        $field = new TextField('value');
+        $field->min_length = 5;
+        $field->max_length = 10;
 
-        $validator->password($type->password);
-        ok(isset($validator->errors['password']), 'invalid password');
+        testValidator(
+            $field,
+            function (FormValidator $v, TextField $f) {
+                $v->length($f);
+            },
+            array('12345','1234567890'),
+            array('', null, '1234', '12345678901')
+        );
+    }
+);
 
-        $validator->clear($type->password);
-        $validator->state['password'] = 'aA1';
-        $validator->password($type->password);
-        ok(!isset($validator->errors['pasword']), 'valid password');
+test(
+    'validate minLength()',
+    function () {
+        $field = new TextField('value');
+        $field->min_length = 5;
 
-        $validator->checked($type->agree);
-        ok(isset($validator->errors['agree']), 'not checked');
-        $validator->clear($type->agree);
-        $validator->state['agree'] = $type->agree->checked_value;
-        $validator->checked($type->agree);
-        ok(!isset($validator->errors['agree']), 'checked');
+        testValidator(
+            $field,
+            function (FormValidator $v, TextField $f) {
+                $v->minLength($f);
+            },
+            array('12345','1234567890'),
+            array('', null, '1234')
+        );
+    }
+);
 
-        // TODO debug and test float validation; add FloatField
+test(
+    'validate maxLength()',
+    function () {
+        $field = new TextField('value');
+        $field->max_length = 10;
+
+        testValidator(
+            $field,
+            function (FormValidator $v, TextField $f) {
+                $v->length($f);
+            },
+            array('12345','1234567890','',null),
+            array('12345678901')
+        );
+    }
+);
+
+test(
+    'validate checked()',
+    function () {
+        $field = new BoolField('value');
+
+        testValidator(
+            $field,
+            function (FormValidator $v, BoolField $f) {
+                $v->checked($f);
+            },
+            array($field->checked_value, true),
+            array('', '0', null, 'true')
+        );
+    }
+);
+
+test(
+    'validate selected()',
+    function () {
+        $field = new EnumField('value');
+        $field->options = array(
+            '1' => 'foo',
+            '2' => 'bar',
+        );
+
+        testValidator(
+            $field,
+            function (FormValidator $v, EnumField $f) {
+                $v->selected($f);
+            },
+            array('1', '2', true),
+            array('0', '3', null)
+        );
     }
 );
 

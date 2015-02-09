@@ -35,6 +35,13 @@ class FormValidator
     public $titles = array();
 
     /**
+     * @var string regular expression used for password validation
+     *
+     * @see password()
+     */
+    public $password_pattern = "#.*^(?=.*[a-z])(?=.*[A-Z0-9]).*$#";
+
+    /**
      * @param array $state the form state to be validated
      */
     public function __construct(array $state)
@@ -49,8 +56,8 @@ class FormValidator
      */
     protected function getValue(Field $field)
     {
-        return isset($this->state[$field->name])
-            ? (string)$this->state[$field->name]
+        return is_scalar($this->state[$field->name])
+            ? (string) $this->state[$field->name]
             : null;
     }
 
@@ -140,8 +147,13 @@ class FormValidator
     }
 
     /**
-     * Automatically perform basic validations on the given fields, based
-     * on the type and property values of that Field.
+     * Automatically perform basic validations on the given Fields, based
+     * on the types and properties of the given Fields - this includes
+     * checking for required input, {@link BoolField} must be checked,
+     * {@link HasOptions} fields must have a valid selection, {@link IntField}
+     * must be within {@link IntField::$min_value} and {@link IntField::$max_value}
+     * and {@link TextField} must have a length between {@link TextField::$min_length}
+     * and {@link TextField::$max_length}.
      *
      * @see Field::$required
      * @see BoolField
@@ -156,16 +168,51 @@ class FormValidator
      *
      * @return $this
      */
-    public function check(Field $field)
+    public function validate(Field $field)
     {
-        // TODO
+        if ($field->required) {
+            $this->required($field);
+        }
+
+        if ($field instanceof BoolField) {
+            $this->checked($field);
+        }
+
+        if ($field instanceof HasOptions) {
+            $this->selected($field);
+        }
+
+        if ($field instanceof IntField) {
+            if ($field->min_value !== null) {
+                if ($field->max_value !== null) {
+                    $this->range($field);
+                } else {
+                    $this->minValue($field);
+                }
+            } else if ($field->max_value !== null) {
+                $this->maxValue($field);
+            }
+        }
+
+        if ($field instanceof TextField) {
+            if ($field->min_length !== null) {
+                if ($field->max_length !== null) {
+                    $this->length($field);
+                } else {
+                    $this->minLength($field);
+                }
+            } else if ($field->max_length !== null) {
+                $this->maxLength($field);
+            }
+        }
 
         return $this;
     }
 
     /**
-     * Set an error message for a given field, if one is not already set for that
-     * property - we only care about the first error message for each field.
+     * Set an error message for a given Field, if one is not already set for that
+     * Field - we only care about the first error message for each Field, so add
+     * error messages (and perform validations) in order of importance.
      *
      * @param Field  $field
      * @param string $error    error message template, compatible with sprintf()
@@ -226,16 +273,16 @@ class FormValidator
     }
 
     /**
-     * Validate numeric input.
+     * Validate whole number input.
      *
      * @param Field  $field
      * @param string $error error message template
      *
      * @return $this
      */
-    public function numeric(Field $field, $error = '%s should be a number')
+    public function int(Field $field, $error = '%s should be a whole number')
     {
-        if (!is_numeric($this->getValue($field))) {
+        if (preg_match('/^\-?\d+$/', $this->getValue($field)) !== 1) {
             $this->error($field, $error, $this->getTitle($field));
         }
 
@@ -250,7 +297,7 @@ class FormValidator
      *
      * @return $this
      */
-    public function float(Field $field, $error = '%s should be a number')
+    public function numeric(Field $field, $error = '%s should be a number')
     {
         $value = $this->getValue($field);
 
@@ -309,6 +356,174 @@ class FormValidator
     }
 
     /**
+     * Validate minimum length of a string.
+     *
+     * @param Field  $field
+     * @param int    $min   minimum number of chars
+     * @param string $error error message template
+     *
+     * @return $this
+     */
+    public function minLength(
+        Field $field,
+        $min = null,
+        $error = '%s must be at least %d characters long'
+    ) {
+        if ($field instanceof TextField) {
+            $min = $min ?: $field->min_length;
+        }
+
+        $length = strlen($this->getValue($field));
+
+        if ($length < $min) {
+            $this->error($field, $error, $this->getTitle($field), $min);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate maximum length of a string.
+     *
+     * @param Field  $field
+     * @param int    $max   maximum number of chars
+     * @param string $error error message template
+     *
+     * @return $this
+     */
+    public function maxLength(
+        Field $field,
+        $max = null,
+        $error = '%s must be less than %d characters long'
+    ) {
+        if ($field instanceof TextField) {
+            $max = $max ?: $field->max_length;
+        }
+
+        $length = strlen($this->getValue($field));
+
+        if ($length > $max) {
+            $this->error($field, $error, $this->getTitle($field), $max);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate numerical value within a min/max range.
+     *
+     * @param Field     $field
+     * @param int|float $min minimum allowed value (inclusive)
+     * @param int|float $max maximum allowed value (inclusive)
+     * @param string    $error
+     *
+     * @return $this
+     */
+    public function range(
+        Field $field,
+        $min = null,
+        $max = null,
+        $error = '%s must be between %s and %s')
+    {
+        $this->numeric($field);
+
+        if (isset($this->errors[$field->name])) {
+            return $this;
+        }
+
+        if ($min === null || $max === null) {
+            if ($field instanceof IntField) {
+                $min = $field->min_value;
+                $max = $field->max_value;
+            } else {
+                throw new RuntimeException("no min/max value provided");
+            }
+        }
+
+        $value = $this->getValue($field);
+
+        if ($value < $min || $value > $max) {
+            $this->error($field, $error, $this->getTitle($field), $min, $max);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate numerical value with a maximum.
+     *
+     * @param Field     $field
+     * @param int|float $max maximum allowed value (inclusive)
+     * @param string    $error
+     *
+     * @return $this
+     */
+    public function maxValue(
+        Field $field,
+        $max = null,
+        $error = '%s must be less than %s')
+    {
+        $this->numeric($field);
+
+        if (isset($this->errors[$field->name])) {
+            return $this;
+        }
+
+        if ($max === null) {
+            if ($field instanceof IntField) {
+                $max = $field->max_value;
+            } else {
+                throw new RuntimeException("no maximum value provided");
+            }
+        }
+
+        $value = $this->getValue($field);
+
+        if ($value > $max) {
+            $this->error($field, $error, $this->getTitle($field), $max);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate numerical value with a minimum.
+     *
+     * @param Field     $field
+     * @param int|float $min minimum allowed value (inclusive)
+     * @param string    $error
+     *
+     * @return $this
+     */
+    public function minValue(
+        Field $field,
+        $min = null,
+        $error = '%s must be at least %s')
+    {
+        $this->numeric($field);
+
+        if (isset($this->errors[$field->name])) {
+            return $this;
+        }
+
+        if ($min === null) {
+            if ($field instanceof IntField) {
+                $min = $field->min_value;
+            } else {
+                throw new RuntimeException("no minimum value provided");
+            }
+        }
+
+        $value = $this->getValue($field);
+
+        if ($value < $min) {
+            $this->error($field, $error, $this->getTitle($field), $min);
+        }
+
+        return $this;
+    }
+
+    /**
      * Validate input matching a regular expression.
      *
      * @param Field  $field
@@ -334,16 +549,19 @@ class FormValidator
     /**
      * Basic password validation: must include lowercase and uppercase or numeric characters.
      *
+     * Use {@link length()} or {@link minLength()} or {@link maxLength()} to validate the length,
+     * or customize the {@link $password_pattern} as needed.
+     *
      * @param Field  $field
      * @param string $error error message
      *
      * @return $this
      *
-     * @see length()
+     * @see $password_pattern
      */
     public function password(Field $field, $error = 'This password is not secure')
     {
-        return $this->match($field, "#.*^(?=.*[a-z])(?=.*[A-Z0-9]).*$#", $error);
+        return $this->match($field, $this->password_pattern, $error);
     }
 
     /**
@@ -354,11 +572,39 @@ class FormValidator
      *
      * @return $this
      *
-     * @see $checked_values
+     * @see Field::$checked_value
      */
     public function checked(BoolField $field, $error = 'Please confirm by ticking the %s checkbox')
     {
         if ($this->getValue($field) != $field->checked_value) {
+            $this->error($field, $error, $this->getTitle($field));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate selection from a list of allowed values (for drop-down inputs, radio lists, etc.)
+     *
+     * @param Field|HasOptions $field
+     * @param string[]|null    $values list of allowed values (or NULL to obtain allowed values from Field)
+     * @param string           $error  error message
+     *
+     * @return $this
+     *
+     * @see HasOptions::getOptions()
+     */
+    public function selected(Field $field, array $values = null, $error = 'Please select %s from the list of available options')
+    {
+        if ($values === null) {
+            if ($field instanceof HasOptions) {
+                $values = array_map('strval', array_keys($field->getOptions()));
+            } else {
+                throw new RuntimeException("no allowed values provided");
+            }
+        }
+
+        if (! in_array($this->getValue($field), $values, true)) {
             $this->error($field, $error, $this->getTitle($field));
         }
 
