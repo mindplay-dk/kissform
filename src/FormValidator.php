@@ -214,25 +214,35 @@ class FormValidator
      * Field - we only care about the first error message for each Field, so add
      * error messages (and perform validations) in order of importance.
      *
-     * @param Field  $field
-     * @param string $error    error message template, compatible with sprintf()
-     * @param mixed  ...$value values to substitute in error message template
+     * Any {name} placeholders in the template will be substituted with $values.
      *
-     * @throws RuntimeException for invalid number of arguments
+     * Note that the field title (as provided by {@link getTitle()}) is always
+     * available for substitution using the {field} placeholder.
+     *
+     * @param Field    $field
+     * @param string   $template error message template, using {name} placeholders
+     * @param string[] $values   map where placeholder => value (optional)
      *
      * @return $this
      */
-    public function error(Field $field, $error)
+    public function error(Field $field, $template, array $values = array())
     {
         if (isset($this->errors[$field->name])) {
             return $this; // ignore error - the first error for this field was already recorded
         }
 
-        $params = func_get_args();
+        $__template = $template;
+        $__field = $field;
 
-        array_shift($params); // remove $field from params
+        unset($template, $field);
 
-        $this->errors[$field->name] = call_user_func_array('sprintf', $params);
+        if (!isset($values['field'])) {
+            $field = $this->getTitle($__field);
+        }
+
+        extract($values);
+
+        $this->errors[$__field->name] = preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template);
 
         return $this;
     }
@@ -245,10 +255,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function required(Field $field, $error = '%s is required')
+    public function required(Field $field, $error = '{field} is required')
     {
         if ($this->getValue($field) == '') {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;
@@ -263,10 +273,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function confirm(Field $field, $confirm_field, $error = '%s must match %s')
+    public function confirm(Field $field, $confirm_field, $error = '{field} must match {confirm_field}')
     {
         if ($this->getValue($field) !== $this->getValue($confirm_field)) {
-            $this->error($confirm_field, $error, $this->getTitle($field), $this->getTitle($confirm_field));
+            $this->error($confirm_field, $error, array('confirm_field' => $this->getTitle($confirm_field)));
         }
 
         return $this;
@@ -280,10 +290,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function int(Field $field, $error = '%s should be a whole number')
+    public function int(Field $field, $error = '{field} should be a whole number')
     {
         if (preg_match('/^\-?\d+$/', $this->getValue($field)) !== 1) {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;
@@ -297,12 +307,12 @@ class FormValidator
      *
      * @return $this
      */
-    public function numeric(Field $field, $error = '%s should be a number')
+    public function numeric(Field $field, $error = '{field} should be a number')
     {
         $value = $this->getValue($field);
 
         if (!(is_numeric($value) || preg_match('/^\d+\.\d+$/', $value) === 1)) {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;
@@ -316,10 +326,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function email(Field $field, $error = '%s must be a valid e-mail address')
+    public function email(Field $field, $error = '{field} must be a valid e-mail address')
     {
         if (filter_var($this->getValue($field), FILTER_VALIDATE_EMAIL) === false) {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;
@@ -339,7 +349,7 @@ class FormValidator
         Field $field,
         $min = null,
         $max = null,
-        $error = '%s must be between %d and %d characters long'
+        $error = '{field} must be between {min} and {max} characters long'
     ) {
         if ($field instanceof TextField) {
             $min = $min ?: $field->min_length;
@@ -349,7 +359,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length < $min || $length > $max) {
-            $this->error($field, $error, $this->getTitle($field), $min, $max);
+            $this->error($field, $error, array('min' => $min, 'max' => $max));
         }
 
         return $this;
@@ -367,7 +377,7 @@ class FormValidator
     public function minLength(
         Field $field,
         $min = null,
-        $error = '%s must be at least %d characters long'
+        $error = '{field} must be at least {min} characters long'
     ) {
         if ($field instanceof TextField) {
             $min = $min ?: $field->min_length;
@@ -376,7 +386,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length < $min) {
-            $this->error($field, $error, $this->getTitle($field), $min);
+            $this->error($field, $error, array('min' => $min));
         }
 
         return $this;
@@ -394,7 +404,7 @@ class FormValidator
     public function maxLength(
         Field $field,
         $max = null,
-        $error = '%s must be less than %d characters long'
+        $error = '{field} must be less than {max} characters long'
     ) {
         if ($field instanceof TextField) {
             $max = $max ?: $field->max_length;
@@ -403,7 +413,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length > $max) {
-            $this->error($field, $error, $this->getTitle($field), $max);
+            $this->error($field, $error, array('max' => $max));
         }
 
         return $this;
@@ -423,7 +433,7 @@ class FormValidator
         Field $field,
         $min = null,
         $max = null,
-        $error = '%s must be between %s and %s')
+        $error = '{field} must be between {min} and {max}')
     {
         $this->numeric($field);
 
@@ -443,7 +453,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value < $min || $value > $max) {
-            $this->error($field, $error, $this->getTitle($field), $min, $max);
+            $this->error($field, $error, array('min' => $min, 'max' => $max));
         }
 
         return $this;
@@ -461,7 +471,7 @@ class FormValidator
     public function maxValue(
         Field $field,
         $max = null,
-        $error = '%s must be less than %s')
+        $error = '{field} must be less than {max}')
     {
         $this->numeric($field);
 
@@ -480,7 +490,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value > $max) {
-            $this->error($field, $error, $this->getTitle($field), $max);
+            $this->error($field, $error, array('max' => $max));
         }
 
         return $this;
@@ -498,7 +508,7 @@ class FormValidator
     public function minValue(
         Field $field,
         $min = null,
-        $error = '%s must be at least %s')
+        $error = '{field} must be at least {min}')
     {
         $this->numeric($field);
 
@@ -517,7 +527,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value < $min) {
-            $this->error($field, $error, $this->getTitle($field), $min);
+            $this->error($field, $error, array('min' => $min));
         }
 
         return $this;
@@ -526,21 +536,17 @@ class FormValidator
     /**
      * Validate input matching a regular expression.
      *
-     * @param Field  $field
-     * @param string $pattern  regular expression pattern to match
-     * @param string $error    error message template (compatible with sprintf)
-     * @param mixed  ...$value values to substitute in error message template
+     * @param Field    $field
+     * @param string   $pattern  regular expression pattern to match
+     * @param string   $error    error message template, using {name} placeholders
+     * @param string[] $values   map where placeholder => value (optional)
      *
      * @return $this
      */
-    public function match(Field $field, $pattern, $error)
+    public function match(Field $field, $pattern, $error, array $values = array())
     {
-        $params = func_get_args();
-
-        array_splice($params, 1, 1); // remove $pattern argument
-
         if (!preg_match($pattern, $this->getValue($field))) {
-            call_user_func_array(array($this, 'error'), $params);
+            $this->error($field, $error, $values);
         }
 
         return $this;
@@ -574,10 +580,10 @@ class FormValidator
      *
      * @see Field::$checked_value
      */
-    public function checked(BoolField $field, $error = 'Please confirm by ticking the %s checkbox')
+    public function checked(BoolField $field, $error = 'Please confirm by ticking the {field} checkbox')
     {
         if ($this->getValue($field) != $field->checked_value) {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;
@@ -594,7 +600,7 @@ class FormValidator
      *
      * @see HasOptions::getOptions()
      */
-    public function selected(Field $field, array $values = null, $error = 'Please select %s from the list of available options')
+    public function selected(Field $field, array $values = null, $error = 'Please select {field} from the list of available options')
     {
         if ($values === null) {
             if ($field instanceof HasOptions) {
@@ -605,7 +611,7 @@ class FormValidator
         }
 
         if (! in_array($this->getValue($field), $values, true)) {
-            $this->error($field, $error, $this->getTitle($field));
+            $this->error($field, $error);
         }
 
         return $this;

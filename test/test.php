@@ -287,7 +287,7 @@ test(
         eq($validator->valid, true, 'no errors initially (is valid)');
         eq($validator->invalid, false, 'no errors initially (is not invalid)');
 
-        $validator->error($type->email, '%s %s', 'some', 'error');
+        $validator->error($type->email, 'some error');
 
         eq($validator->valid, false, 'errors are present (is not valid)');
         eq($validator->invalid, true, 'errors are present (is invalid)');
