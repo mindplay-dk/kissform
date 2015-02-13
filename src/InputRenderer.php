@@ -50,13 +50,6 @@ class InputRenderer
     public $label_class = 'control-label';
 
     /**
-     * @var string CSS class-name added to field groups
-     *
-     * @see group()
-     */
-    public $group_class = 'form-group';
-
-    /**
      * @var string CSS class-name added to required fields
      *
      * @see group()
@@ -69,6 +62,21 @@ class InputRenderer
      * @see group()
      */
     public $error_class = 'has-error';
+
+    /**
+     * @var string CSS class-name added to field groups
+     *
+     * @see group()
+     */
+    public $group_class = 'form-group';
+
+    /**
+     * @var string group tag name (e.g. "div", "fieldset", etc.; defaults to "div")
+     *
+     * @see group()
+     * @see endGroup()
+     */
+    public $group_tag = 'div';
 
     /**
      * @var string[] map of attributes to apply to date-picker inputs
@@ -249,19 +257,23 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML tag with CSS classes added for {@see Field::$required} and error state.
+     * Build an HTML opening tag for an input group, with CSS classes added for
+     * {@see Field::$required} and error state, as needed.
+     *
+     * Call {@link endGroup()} to create the matching closing tag.
      *
      * @param Field    $field
-     * @param  string  $name  HTML tag name (defaults to "div")
-     * @param string[] $attr  map of HTML attributes (optional)
-     * @param bool     $close true to build a self-closing tag (defaults to false)
+     * @param string[] $attr map of HTML attributes (optional)
      *
      * @return string
      *
+     * @see $group_tag
+     * @see $group_class
      * @see $required_class
      * @see $error_class
+     * @see endGroup()
      */
-    public function group(Field $field, $name = 'div', array $attr = array(), $close = false)
+    public function group(Field $field, array $attr = array())
     {
         $classes = $this->group_class !== null
             ? array($this->group_class)
@@ -279,7 +291,19 @@ class InputRenderer
             ? array_merge($classes, (array)$attr['class'])
             : $classes;
 
-        return $this->buildTag($name, $attr, $close);
+        return $this->buildTag($this->group_tag, $attr, false);
+    }
+
+    /**
+     * Returns the matching closing tag for a {@link group()} tag.
+     *
+     * @return string
+     *
+     * @see group()
+     */
+    public function endGroup()
+    {
+        return "</{$this->group_tag}>";
     }
 
     /**

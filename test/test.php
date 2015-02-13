@@ -153,7 +153,7 @@ test(
         $type = new SampleDescriptor();
         $form = new InputRenderer(array());
 
-        eq($form->group($type->text), '<div class="form-group">');
+        eq($form->group($type->text) . $form->endGroup(), '<div class="form-group"></div>');
 
         $form->errors['text'] = 'some error';
 
@@ -163,9 +163,9 @@ test(
 
         eq($form->group($type->text), '<div class="form-group is-required has-error">');
 
-        eq($form->group($type->text, 'div', array('class' => 'foo')), '<div class="form-group is-required has-error foo">', 'merge with one class');
+        eq($form->group($type->text, array('class' => 'foo')), '<div class="form-group is-required has-error foo">', 'merge with one class');
 
-        eq($form->group($type->text, 'span', array('class' => array('foo', 'bar'))), '<span class="form-group is-required has-error foo bar">', 'merge with multiple classes');
+        eq($form->group($type->text, array('class' => array('foo', 'bar'))), '<div class="form-group is-required has-error foo bar">', 'merge with multiple classes');
     }
 );
 

@@ -114,9 +114,9 @@ if (isset($_SESSION[__FILE__]['errors'])) {
 <h1>Make a Donation</h1>
 
 <form method="post">
-    <?= $form->group($t->first_name) . $form->label($t->first_name) . $form->text($t->first_name) . '</div>' ?>
-    <?= $form->group($t->last_name) . $form->label($t->last_name) . $form->text($t->last_name) . '</div>' ?>
-    <?= $form->group($t->amount) . $form->label($t->amount) . $form->text($t->amount) . '</div>' ?>
+    <?= $form->group($t->first_name) . $form->label($t->first_name) . $form->text($t->first_name) . $form->endGroup() ?>
+    <?= $form->group($t->last_name) . $form->label($t->last_name) . $form->text($t->last_name) . $form->endGroup() ?>
+    <?= $form->group($t->amount) . $form->label($t->amount) . $form->text($t->amount) . $form->endGroup() ?>
     <?= $form->checkbox($t->i_agree) ?>
     <input class="btn btn-lg btn-primary" type="submit" value="Donate" />
 </form>
