@@ -177,6 +177,10 @@ class InputValidator
      * and {@link TextField} must have a length between {@link TextField::$min_length}
      * and {@link TextField::$max_length}.
      *
+     * @param Field|Field[] ...$field
+     *
+     * @return $this
+     *
      * @see Field::$required
      * @see BoolField
      * @see EnumField
@@ -185,13 +189,23 @@ class InputValidator
      * @see IntField::$max_value
      * @see TextField::$min_length
      * @see TextField::$max_length
-     *
-     * @param Field ...$field
-     *
-     * @return $this
      */
-    public function validate(Field $field)
+    public function validate($field)
     {
+        $args = func_get_args();
+
+        if (count($args) > 1) {
+            return $this->validate($args);
+        }
+
+        if (is_array($args[0])) {
+            foreach ($args[0] as $field) {
+                $this->validate($field);
+            }
+
+            return $this;
+        }
+
         if ($field->required) {
             $this->required($field);
         }
