@@ -64,19 +64,19 @@ class InputRenderer
     public $error_class = 'has-error';
 
     /**
-     * @var string CSS class-name added to field groups
-     *
-     * @see group()
-     */
-    public $group_class = 'form-group';
-
-    /**
      * @var string group tag name (e.g. "div", "fieldset", etc.; defaults to "div")
      *
      * @see group()
      * @see endGroup()
      */
     public $group_tag = 'div';
+
+    /**
+     * @var string[] default attributes to be added to opening control-group tags
+     *
+     * @see group()
+     */
+    public $group_attrs = array('class' => 'form-group');
 
     /**
      * @var string[] map of attributes to apply to date-picker inputs
@@ -275,8 +275,8 @@ class InputRenderer
      */
     public function group(Field $field, array $attr = array())
     {
-        $classes = $this->group_class !== null
-            ? array($this->group_class)
+        $classes = isset($this->group_attrs['class'])
+            ? (array) $this->group_attrs['class']
             : array();
 
         if ($this->required_class !== null && $this->isRequired($field)) {
@@ -300,6 +300,7 @@ class InputRenderer
      * @return string
      *
      * @see group()
+     * @see $group_tag
      */
     public function endGroup()
     {
