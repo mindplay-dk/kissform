@@ -35,6 +35,28 @@ class FormValidator
     public $titles = array();
 
     /**
+     * Default, localized validation error messages.
+     *
+     * @var string[] map where validation method-name => validation error-message
+     */
+    public $lang = array(
+        'required'  => '{field} is required',
+        'confirm'   => '{field} must match {confirm_field}',
+        'int'       => '{field} should be a whole number',
+        'numeric'   => '{field} should be a number',
+        'email'     => '{field} must be a valid e-mail address',
+        'length'    => '{field} must be between {min} and {max} characters long',
+        'minLength' => '{field} must be at least {min} characters long',
+        'maxLength' => '{field} must be less than {max} characters long',
+        'range'     => '{field} must be between {min} and {max}',
+        'minValue'  => '{field} must be at least {min}',
+        'maxValue'  => '{field} must be less than {max}',
+        'password'  => 'This password is not secure',
+        'checked'   => 'Please confirm by ticking the {field} checkbox',
+        'selected'  => 'Please select {field} from the list of available options',
+    );
+
+    /**
      * @var string regular expression used for password validation
      *
      * @see password()
@@ -255,10 +277,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function required(Field $field, $error = '{field} is required')
+    public function required(Field $field, $error = null)
     {
         if ($this->getValue($field) == '') {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
@@ -273,10 +295,13 @@ class FormValidator
      *
      * @return $this
      */
-    public function confirm(Field $field, $confirm_field, $error = '{field} must match {confirm_field}')
+    public function confirm(Field $field, $confirm_field, $error = null)
     {
         if ($this->getValue($field) !== $this->getValue($confirm_field)) {
-            $this->error($confirm_field, $error, array('confirm_field' => $this->getTitle($confirm_field)));
+            $this->error(
+                $confirm_field,
+                $error ?: $this->lang[__FUNCTION__],
+                array('confirm_field' => $this->getTitle($confirm_field)));
         }
 
         return $this;
@@ -290,10 +315,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function int(Field $field, $error = '{field} should be a whole number')
+    public function int(Field $field, $error = null)
     {
         if (preg_match('/^\-?\d+$/', $this->getValue($field)) !== 1) {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
@@ -307,12 +332,12 @@ class FormValidator
      *
      * @return $this
      */
-    public function numeric(Field $field, $error = '{field} should be a number')
+    public function numeric(Field $field, $error = null)
     {
         $value = $this->getValue($field);
 
         if (!(is_numeric($value) || preg_match('/^\d+\.\d+$/', $value) === 1)) {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
@@ -326,10 +351,10 @@ class FormValidator
      *
      * @return $this
      */
-    public function email(Field $field, $error = '{field} must be a valid e-mail address')
+    public function email(Field $field, $error = null)
     {
         if (filter_var($this->getValue($field), FILTER_VALIDATE_EMAIL) === false) {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
@@ -345,12 +370,8 @@ class FormValidator
      *
      * @return $this
      */
-    public function length(
-        Field $field,
-        $min = null,
-        $max = null,
-        $error = '{field} must be between {min} and {max} characters long'
-    ) {
+    public function length(Field $field, $min = null, $max = null, $error = null)
+    {
         if ($field instanceof TextField) {
             $min = $min ?: $field->min_length;
             $max = $max ?: $field->max_length;
@@ -359,7 +380,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length < $min || $length > $max) {
-            $this->error($field, $error, array('min' => $min, 'max' => $max));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
         }
 
         return $this;
@@ -374,11 +395,8 @@ class FormValidator
      *
      * @return $this
      */
-    public function minLength(
-        Field $field,
-        $min = null,
-        $error = '{field} must be at least {min} characters long'
-    ) {
+    public function minLength(Field $field, $min = null, $error = null)
+    {
         if ($field instanceof TextField) {
             $min = $min ?: $field->min_length;
         }
@@ -386,7 +404,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length < $min) {
-            $this->error($field, $error, array('min' => $min));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
         }
 
         return $this;
@@ -401,11 +419,8 @@ class FormValidator
      *
      * @return $this
      */
-    public function maxLength(
-        Field $field,
-        $max = null,
-        $error = '{field} must be less than {max} characters long'
-    ) {
+    public function maxLength(Field $field, $max = null, $error = null)
+    {
         if ($field instanceof TextField) {
             $max = $max ?: $field->max_length;
         }
@@ -413,7 +428,7 @@ class FormValidator
         $length = strlen($this->getValue($field));
 
         if ($length > $max) {
-            $this->error($field, $error, array('max' => $max));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
         }
 
         return $this;
@@ -429,11 +444,7 @@ class FormValidator
      *
      * @return $this
      */
-    public function range(
-        Field $field,
-        $min = null,
-        $max = null,
-        $error = '{field} must be between {min} and {max}')
+    public function range(Field $field, $min = null, $max = null, $error = null)
     {
         $this->numeric($field);
 
@@ -453,7 +464,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value < $min || $value > $max) {
-            $this->error($field, $error, array('min' => $min, 'max' => $max));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
         }
 
         return $this;
@@ -468,10 +479,7 @@ class FormValidator
      *
      * @return $this
      */
-    public function maxValue(
-        Field $field,
-        $max = null,
-        $error = '{field} must be less than {max}')
+    public function maxValue(Field $field, $max = null, $error = null)
     {
         $this->numeric($field);
 
@@ -490,7 +498,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value > $max) {
-            $this->error($field, $error, array('max' => $max));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
         }
 
         return $this;
@@ -505,10 +513,7 @@ class FormValidator
      *
      * @return $this
      */
-    public function minValue(
-        Field $field,
-        $min = null,
-        $error = '{field} must be at least {min}')
+    public function minValue(Field $field, $min = null, $error = null)
     {
         $this->numeric($field);
 
@@ -527,7 +532,7 @@ class FormValidator
         $value = $this->getValue($field);
 
         if ($value < $min) {
-            $this->error($field, $error, array('min' => $min));
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
         }
 
         return $this;
@@ -565,9 +570,9 @@ class FormValidator
      *
      * @see $password_pattern
      */
-    public function password(Field $field, $error = 'This password is not secure')
+    public function password(Field $field, $error = null)
     {
-        return $this->match($field, $this->password_pattern, $error);
+        return $this->match($field, $this->password_pattern, $error ?: $this->lang[__FUNCTION__]);
     }
 
     /**
@@ -580,10 +585,10 @@ class FormValidator
      *
      * @see Field::$checked_value
      */
-    public function checked(BoolField $field, $error = 'Please confirm by ticking the {field} checkbox')
+    public function checked(BoolField $field, $error = null)
     {
         if ($this->getValue($field) != $field->checked_value) {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
@@ -600,7 +605,7 @@ class FormValidator
      *
      * @see HasOptions::getOptions()
      */
-    public function selected(Field $field, array $values = null, $error = 'Please select {field} from the list of available options')
+    public function selected(Field $field, array $values = null, $error = null)
     {
         if ($values === null) {
             if ($field instanceof HasOptions) {
@@ -611,7 +616,7 @@ class FormValidator
         }
 
         if (! in_array($this->getValue($field), $values, true)) {
-            $this->error($field, $error);
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
         return $this;
