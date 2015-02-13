@@ -3,10 +3,10 @@
 use mindplay\kissform\BoolField;
 use mindplay\kissform\EnumField;
 use mindplay\kissform\Field;
-use mindplay\kissform\FormHelper;
+use mindplay\kissform\InputRenderer;
 use mindplay\kissform\IntField;
 use mindplay\kissform\TextField;
-use mindplay\kissform\FormValidator;
+use mindplay\kissform\InputValidator;
 
 require __DIR__ . '/header.php';
 
@@ -112,7 +112,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
     $field->label = 'Value';
 
     foreach ($valid as $valid_value) {
-        $validator = new FormValidator(array('value' => $valid_value));
+        $validator = new InputValidator(array('value' => $valid_value));
 
         call_user_func($function, $validator, $field);
 
@@ -120,7 +120,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
     }
 
     foreach ($invalid as $invalid_value) {
-        $validator = new FormValidator(array('value' => $invalid_value));
+        $validator = new InputValidator(array('value' => $invalid_value));
 
         call_user_func($function, $validator, $field);
 
@@ -132,7 +132,7 @@ test(
     'handles name, id and class-attributes',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
         eq($form->text($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'merges multi-value class attribute');
 
@@ -151,7 +151,7 @@ test(
     'builds input groups',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
         eq($form->group($type->text), '<div class="form-group">');
 
@@ -173,11 +173,11 @@ test(
     'builds various text input tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
         eq($form->text($type->text), '<input class="form-control" name="text" type="text"/>', 'basic input with no value-attribute');
 
-        $form->state['text'] = 'Hello World';
+        $form->input['text'] = 'Hello World';
 
         eq($form->text($type->text), '<input class="form-control" name="text" type="text" value="Hello World"/>', 'basic input with value-attribute');
 
@@ -191,7 +191,7 @@ test(
         eq($form->text($type->text, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
         eq($form->text($type->text, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="text" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
 
-        $form->state['text'] = 'this & that';
+        $form->input['text'] = 'this & that';
 
         eq($form->text($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
 
@@ -209,7 +209,7 @@ test(
     'builds label tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
         expect(
             'RuntimeException',
@@ -219,7 +219,7 @@ test(
             }
         );
 
-        $form = new FormHelper(array(), 'form');
+        $form = new InputRenderer(array(), 'form');
 
         eq($form->label($type->text), '', 'returns an empty string for unlabeled input');
 
@@ -233,7 +233,7 @@ test(
     'builds labeled checkboxes',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array(), 'form');
+        $form = new InputRenderer(array(), 'form');
 
         $type->bool->label = 'I agree';
 
@@ -245,7 +245,7 @@ test(
     'builds select/option tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
         $type->enum->required = false;
 
@@ -257,13 +257,13 @@ test(
     'builds date/time text inputs',
     function () {
         $type = new SampleDescriptor();
-        $form = new FormHelper(array());
+        $form = new InputRenderer(array());
 
-        $form->state['text'] = '1975-07-07';
+        $form->input['text'] = '1975-07-07';
 
         eq($form->date($type->text), '<input class="form-control" data-ui="datepicker" name="text" readonly="readonly" type="text" value="1975-07-07"/>');
 
-        $form->state['text'] = '1975-07-07 12:00:00';
+        $form->input['text'] = '1975-07-07 12:00:00';
 
         eq($form->datetime($type->text), '<input class="form-control" data-ui="datetimepicker" name="text" readonly="readonly" type="text" value="1975-07-07 12:00:00"/>');
     }
@@ -272,7 +272,7 @@ test(
 test(
     'validator behavior',
     function () {
-        $validator = new FormValidator(array());
+        $validator = new InputValidator(array());
 
         $type = new ValidationDescriptor();
 
@@ -309,7 +309,7 @@ test(
     function () {
         testValidator(
             new TextField('value'),
-            function (FormValidator $v, Field $f) {
+            function (InputValidator $v, Field $f) {
                 $v->required($f);
             },
             array('a', 'bbb'),
@@ -323,7 +323,7 @@ test(
     function () {
         testValidator(
             new TextField('value'),
-            function (FormValidator $v, TextField $f) {
+            function (InputValidator $v, TextField $f) {
                 $v->email($f);
             },
             array('a@b.com', 'foo@bar.dk'),
@@ -341,7 +341,7 @@ test(
 
         testValidator(
             $int_field,
-            function (FormValidator $v, IntField $f) {
+            function (InputValidator $v, IntField $f) {
                 $v->range($f);
             },
             array(100, 500, 1000),
@@ -358,7 +358,7 @@ test(
 
         testValidator(
             $int_field,
-            function (FormValidator $v, IntField $f) {
+            function (InputValidator $v, IntField $f) {
                 $v->minValue($f);
             },
             array(100, 1000),
@@ -375,7 +375,7 @@ test(
 
         testValidator(
             $int_field,
-            function (FormValidator $v, IntField $f) {
+            function (InputValidator $v, IntField $f) {
                 $v->maxValue($f);
             },
             array(-1, 0, 1000),
@@ -389,7 +389,7 @@ test(
     function () {
         testValidator(
             new IntField('value'),
-            function (FormValidator $v, IntField $f) {
+            function (InputValidator $v, IntField $f) {
                 $v->int($f);
             },
             array('0', '-1', '1', '123'),
@@ -403,7 +403,7 @@ test(
     function () {
         testValidator(
             new IntField('value'),
-            function (FormValidator $v, IntField $f) {
+            function (InputValidator $v, IntField $f) {
                 $v->numeric($f);
             },
             array('0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1'),
@@ -418,12 +418,12 @@ test(
         $field = new TextField('value');
         $other = new TextField('other');
 
-        $validator = new FormValidator(array('value' => 'foo', 'other' => 'foo'));
+        $validator = new InputValidator(array('value' => 'foo', 'other' => 'foo'));
         $validator->confirm($field, $other);
         ok(!isset($validator->errors['value']), 'value field has no error');
         ok(!isset($validator->errors['other']), 'other field has no error');
 
-        $validator = new FormValidator(array('value' => 'foo', 'other' => 'bar'));
+        $validator = new InputValidator(array('value' => 'foo', 'other' => 'bar'));
         $validator->confirm($field, $other);
         ok(!isset($validator->errors['value']), 'value field has no error');
         ok(isset($validator->errors['other']), 'other field has error');
@@ -439,7 +439,7 @@ test(
 
         testValidator(
             $field,
-            function (FormValidator $v, TextField $f) {
+            function (InputValidator $v, TextField $f) {
                 $v->length($f);
             },
             array('12345','1234567890'),
@@ -456,7 +456,7 @@ test(
 
         testValidator(
             $field,
-            function (FormValidator $v, TextField $f) {
+            function (InputValidator $v, TextField $f) {
                 $v->minLength($f);
             },
             array('12345','1234567890'),
@@ -473,7 +473,7 @@ test(
 
         testValidator(
             $field,
-            function (FormValidator $v, TextField $f) {
+            function (InputValidator $v, TextField $f) {
                 $v->length($f);
             },
             array('12345','1234567890','',null),
@@ -489,7 +489,7 @@ test(
 
         testValidator(
             $field,
-            function (FormValidator $v, BoolField $f) {
+            function (InputValidator $v, BoolField $f) {
                 $v->checked($f);
             },
             array($field->checked_value, true),
@@ -509,7 +509,7 @@ test(
 
         testValidator(
             $field,
-            function (FormValidator $v, EnumField $f) {
+            function (InputValidator $v, EnumField $f) {
                 $v->selected($f);
             },
             array('1', '2', true),

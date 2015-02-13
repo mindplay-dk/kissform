@@ -5,7 +5,7 @@ namespace mindplay\kissform;
 use RuntimeException;
 
 /**
- * Simple form state validator.
+ * Simple form input validator.
  *
  * Errors accumulate in the public {@see $errors} property, indexed by name - only
  * the first error encountered (for a given property) is recorded, since typically
@@ -17,12 +17,12 @@ use RuntimeException;
  * @property-read bool $valid   true, if no errors have been recorded; otherwise false.
  * @property-read bool $invalid true, if errors have been recorded; otherwise false.
  */
-class FormValidator
+class InputValidator
 {
     /**
-     * @var array form state (maps of strings, possibly nested)
+     * @var array form input (maps of strings, possibly nested)
      */
-    public $state;
+    public $input;
 
     /**
      * @var string[] error messages indexed by field name
@@ -64,22 +64,22 @@ class FormValidator
     public $password_pattern = "#.*^(?=.*[a-z])(?=.*[A-Z0-9]).*$#";
 
     /**
-     * @param array $state the form state to be validated
+     * @param array $input the form input to be validated
      */
-    public function __construct(array $state)
+    public function __construct(array $input)
     {
-        $this->state = $state;
+        $this->input = $input;
     }
 
     /**
      * @param Field $field
      *
-     * @return string|null value (or NULL if no value exists in $state)
+     * @return string|null value (or NULL if no value exists in $input)
      */
     protected function getValue(Field $field)
     {
-        return is_scalar($this->state[$field->name])
-            ? (string) $this->state[$field->name]
+        return is_scalar($this->input[$field->name])
+            ? (string) $this->input[$field->name]
             : null;
     }
 

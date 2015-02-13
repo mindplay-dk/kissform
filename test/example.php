@@ -1,8 +1,8 @@
 <?php
 
 use mindplay\kissform\BoolField;
-use mindplay\kissform\FormHelper;
-use mindplay\kissform\FormValidator;
+use mindplay\kissform\InputRenderer;
+use mindplay\kissform\InputValidator;
 use mindplay\kissform\IntField;
 use mindplay\kissform\TextField;
 
@@ -48,20 +48,20 @@ class DonationForm
 
 $t = new DonationForm();
 
-$state = array();
+$input = array();
 
-if (isset($_SESSION[__FILE__]['state'])) {
-    $state = $_SESSION[__FILE__]['state'];
+if (isset($_SESSION[__FILE__]['input'])) {
+    $input = $_SESSION[__FILE__]['input'];
 
-    unset($_SESSION[__FILE__]['state']);
+    unset($_SESSION[__FILE__]['input']);
 }
 
 if (isset($_POST['form'])) {
-    $state = $_POST['form'];
+    $input = $_POST['form'];
 
-    $_SESSION[__FILE__]['state'] = $state;
+    $_SESSION[__FILE__]['input'] = $input;
 
-    $validator = new FormValidator($state);
+    $validator = new InputValidator($input);
 
     $validator
         ->required($t->first_name)
@@ -83,7 +83,7 @@ if (isset($_POST['form'])) {
     unset($validator);
 }
 
-$form = new FormHelper($state, 'form');
+$form = new InputRenderer($input, 'form');
 
 if (isset($_SESSION[__FILE__]['errors'])) {
     $form->errors = $_SESSION[__FILE__]['errors'];

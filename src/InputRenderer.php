@@ -5,10 +5,10 @@ namespace mindplay\kissform;
 use RuntimeException;
 
 /**
- * This class builds and populates input elements for use on forms
+ * This class renders and populates input elements for use in forms,
  * by consuming property-information provided by a type-descriptor.
  */
-class FormHelper
+class InputRenderer
 {
     /**
      * @var string HTML encoding charset
@@ -16,9 +16,9 @@ class FormHelper
     public $encoding = 'UTF-8';
 
     /**
-     * @var array form state (maps of strings, possibly nested)
+     * @var array form input (maps of strings, possibly nested)
      */
-    public $state;
+    public $input;
 
     /**
      * @var string[] map where field name => error message
@@ -91,13 +91,13 @@ class FormHelper
     );
 
     /**
-     * @param array  $state       form state: maps of strings, possibly nested (for example $_GET or $_POST)
+     * @param array  $input       form input: maps of strings, possibly nested (for example $_GET or $_POST)
      * @param string $name_prefix base name for inputs, e.g. 'myform' or 'myform[123]', etc.
      * @param null   $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
-    public function __construct(array $state, $name_prefix = null, $id_prefix = null)
+    public function __construct(array $input, $name_prefix = null, $id_prefix = null)
     {
-        $this->state = $state;
+        $this->input = $input;
         $this->name_prefix = $name_prefix;
         $this->id_prefix = $id_prefix === null
             ? preg_replace('/\W/', '', $this->name_prefix)
@@ -107,12 +107,12 @@ class FormHelper
     /**
      * @param string $name
      *
-     * @return string|null value (or NULL if no value exists in $state)
+     * @return string|null value (or NULL if no value exists in $input)
      */
     protected function getValue($name)
     {
-        return isset($this->state[$name])
-            ? (string)$this->state[$name]
+        return isset($this->input[$name])
+            ? (string)$this->input[$name]
             : null;
     }
 

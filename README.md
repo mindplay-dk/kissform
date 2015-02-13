@@ -40,7 +40,7 @@ class UserForm
 Use the model to render form inputs:
 
 ```PHP
-$form = new FormHelper($state, 'user');
+$form = new InputRenderer($input, 'user');
 
 $u = new UserForm();
 
@@ -55,7 +55,7 @@ $u = new UserForm();
 Reuse the form model to validate user input:
 
 ```PHP
-$validator = new FormValidator($_POST['user']);
+$validator = new InputValidator($_POST['user']);
 
 $validator
     ->required($t->first_name)
@@ -83,6 +83,22 @@ That's really basic - of course it does other expected useful things, like:
 
  * Field titles get reused, e.g. between `<label>` tags and error messages, but
    you can also customize displayed names in error messages, if needed.
+   
+ * Default error messages can be localized/customized.
+
+It deliberately does not implement any of the following:
+
+ * Form layout: there are too many possible variations, and it's just HTML, which
+   is really easy to do in the first place - it's not worthwhile.
+   
+ * Language selection: again, too many scenarios - you could be checking browser
+   headers, domain-names or a user-defined setting, that's your business; using
+   dependency injection, you should have no trouble injecting the required set
+   of language constants in a multi-language scenario.
+   
+ * A plugin architecture: you don't need one - just use everyday OO patterns to
+   solve problems like a thrifty programmer. Extend the renderer and validator
+   as needed for your business/project/module/scenario/model, etc.
 
 If you think that sounds very simple, that's because it is - this library does
 very little and gets out of your way whenever you need to do something fancy.
