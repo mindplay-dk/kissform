@@ -299,6 +299,12 @@ test(
 
         eq($validator->errors['email'], 'some error', 'first error message is retained');
 
+        $validator->clear($type->email);
+
+        eq($validator->valid, true, 'error message cleared');
+
+        $validator->error($type->email, 'some error again');
+
         $validator->reset();
 
         eq($validator->valid, true, 'errors have been cleared');
@@ -515,6 +521,22 @@ test(
             },
             array('1', '2', true),
             array('0', '3', null)
+        );
+    }
+);
+
+test(
+    'validate password()',
+    function () {
+        $field = new TextField('value');
+
+        testValidator(
+            $field,
+            function (InputValidator $v, TextField $f) {
+                $v->password($f);
+            },
+            array('aA1', 'aA', 'a1', '1a'),
+            array('111', 'aaa', 'AAA')
         );
     }
 );
