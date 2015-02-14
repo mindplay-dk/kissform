@@ -11,5 +11,5 @@ namespace mindplay\kissform;
 interface HasOptions
 {
     /** @return string[] map where option value => option label */
-    function getOptions();
+    public function getOptions();
 }
