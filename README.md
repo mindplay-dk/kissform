@@ -100,7 +100,18 @@ It deliberately does not implement any of the following:
    solve problems like a thrifty programmer. Extend the renderer and validator
    as needed for your business/project/module/scenario/model, etc.
 
-If you think that sounds very simple, that's because it is - this library does
+Many form frameworks are based on "widgets" that can render inputs, perform
+validation, etc. - this approach breaks [SRP](http://en.wikipedia.org/wiki/Single_responsibility_principle)
+because there are *no* overlapping concerns between form rendering and input validation.
+Assuming you use [PRG](http://en.wikipedia.org/wiki/Post/Redirect/Get)
+like a good little soldier: when the form is rendered initially, there is no user
+input, thus nothing to validate; when the form fails validation, the validation
+occurs during the first POST request, and the form rendering occurs during the
+second GET request. In other words, form rendering and validation never actually
+occurs during the same request - thus, nu reason to load or run any unused code,
+when these concerns are properly separated.
+
+If you think it sounds rather simplistic, that's because it is - this library does
 very little and gets out of your way whenever you need to do something fancy.
 
 There is very little to learn, and nothing needs to fit into a "box" - there
@@ -119,9 +130,13 @@ Why input validation, as opposed to (business) model validation?
 
  * Because input validation is simpler - it's just one class, and you can/should
    extend the class with case-specific validations, since you're often going to
-   have validations that pertain to only one scenario/model/case.
+   have validations that pertain to only one scenario/model/case. Bulding reusable
+   business validation rules as components would be a lot more complicated - many
+   of these would be applicable to only on scenario/case and would never actually
+   get reused, so they don't even benefit from this complexity.
 
- * There may be simple scenarios in which a business model isn't necessary.
+ * There are simple scenarios in which a business model isn't even useful, such
+   as contact or comment forms, etc.
 
  * Because I said so.
 
