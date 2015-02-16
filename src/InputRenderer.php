@@ -113,15 +113,21 @@ class InputRenderer
     }
 
     /**
-     * @param string $name
+     * @param Field $field
      *
-     * @return string|null value (or NULL if no value exists in $input)
+     * @return string|array|null value (or NULL, if no value exists in $input)
      */
-    protected function getValue($name)
+    protected function getInput(Field $field)
     {
-        return isset($this->input[$name])
-            ? (string)$this->input[$name]
-            : null;
+        if (!isset($this->input[$field->name])) {
+            return null;
+        }
+
+        if (is_scalar($this->input[$field->name])) {
+            return (string)$this->input[$field->name];
+        }
+
+        return $this->input[$field->name];
     }
 
     /**
@@ -248,7 +254,7 @@ class InputRenderer
             $attr + array(
                 'name' => $this->createName($field),
                 'id' => $this->createId($field),
-                'value' => $this->getValue($field->name),
+                'value' => $this->getInput($field),
                 'type' => $type,
                 'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
             ),
@@ -346,7 +352,7 @@ class InputRenderer
             'textarea',
             $attr,
             false
-        ) . htmlspecialchars($this->getValue($field->name), ENT_COMPAT, $this->encoding) . '</textarea>';
+        ) . htmlspecialchars($this->getInput($field), ENT_COMPAT, $this->encoding) . '</textarea>';
     }
 
     /**
@@ -450,7 +456,7 @@ class InputRenderer
                 array(
                     'name' => $this->createName($field),
                     'value' => $checked_value,
-                    'checked' => $this->getValue($field->name) == $checked_value ? 'checked' : null,
+                    'checked' => $this->getInput($field) == $checked_value ? 'checked' : null,
                     'type' => 'checkbox',
                 ),
                 true
@@ -482,7 +488,7 @@ class InputRenderer
             false
         );
 
-        $selected = $this->getValue($field->name);
+        $selected = $this->getInput($field);
 
         if ($options === null && $field instanceof HasOptions) {
             $options = $field->getOptions();
