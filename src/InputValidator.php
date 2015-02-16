@@ -2,6 +2,7 @@
 
 namespace mindplay\kissform;
 
+use DateTime;
 use RuntimeException;
 
 /**
@@ -42,8 +43,8 @@ class InputValidator
     public $lang = array(
         'required'  => '{field} is required',
         'confirm'   => '{field} must match {confirm_field}',
-        'int'       => '{field} should be a whole number',
-        'numeric'   => '{field} should be a number',
+        'int'       => '{field} must be a whole number',
+        'numeric'   => '{field} must be a number',
         'email'     => '{field} must be a valid e-mail address',
         'length'    => '{field} must be between {min} and {max} characters long',
         'minLength' => '{field} must be at least {min} characters long',
@@ -54,6 +55,7 @@ class InputValidator
         'password'  => 'This password is not secure',
         'checked'   => 'Please confirm by ticking the {field} checkbox',
         'selected'  => 'Please select {field} from the list of available options',
+        'datetime'  => '{field} must be a valid date/time',
     );
 
     /**
@@ -640,5 +642,26 @@ class InputValidator
         }
 
         return $this;
+    }
+
+    /**
+     * Validate date/time input in the format specified by the given DateTimeField.
+     *
+     * @param DateTimeField $field
+     * @param string        $error error message
+     *
+     * @return $this
+     */
+    public function datetime(DateTimeField $field, $error = null)
+    {
+        $input = $this->getInput($field);
+
+        $time = @date_create_from_format($field->format, $input, $field->timezone);
+
+        if ($time && $time->format($field->format) == $input) {
+            return $this;
+        }
+
+        return $this->error($field, $error ?: $this->lang[__FUNCTION__]);
     }
 }

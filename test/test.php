@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\BoolField;
+use mindplay\kissform\DateTimeField;
 use mindplay\kissform\EnumField;
 use mindplay\kissform\Field;
 use mindplay\kissform\InputRenderer;
@@ -514,6 +515,24 @@ test(
             },
             array('1', '2', true),
             array('0', '3', null)
+        );
+    }
+);
+
+test(
+    'validate datetime()',
+    function () {
+        $field = new DateTimeField('value');
+        $field->setTimeZone('UTC');
+        $field->format = 'Y-m-d';
+
+        testValidator(
+            $field,
+            function (InputValidator $v, DateTimeField $f) {
+                $v->datetime($f);
+            },
+            array('1975-07-07', '2014-01-01', '2014-12-31'),
+            array('2014-1-1', '2014', '2014-13-01', '2014-12-32', '2014-0-1', '2014-1-0')
         );
     }
 );
