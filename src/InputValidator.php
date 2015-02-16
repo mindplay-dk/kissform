@@ -74,13 +74,19 @@ class InputValidator
     /**
      * @param Field $field
      *
-     * @return string|null value (or NULL if no value exists in $input)
+     * @return string|array|null value (or NULL, if no value exists in $input)
      */
-    protected function getValue(Field $field)
+    protected function getInput(Field $field)
     {
-        return is_scalar($this->input[$field->name])
-            ? (string) $this->input[$field->name]
-            : null;
+        if (!isset($this->input[$field->name])) {
+            return null;
+        }
+
+        if (is_scalar($this->input[$field->name])) {
+            return (string)$this->input[$field->name];
+        }
+
+        return $this->input[$field->name];
     }
 
     /**
@@ -293,7 +299,7 @@ class InputValidator
      */
     public function required(Field $field, $error = null)
     {
-        if ($this->getValue($field) == '') {
+        if ($this->getInput($field) == '') {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -311,7 +317,7 @@ class InputValidator
      */
     public function confirm(Field $field, $confirm_field, $error = null)
     {
-        if ($this->getValue($field) !== $this->getValue($confirm_field)) {
+        if ($this->getInput($field) !== $this->getInput($confirm_field)) {
             $this->error(
                 $confirm_field,
                 $error ?: $this->lang[__FUNCTION__],
@@ -331,7 +337,7 @@ class InputValidator
      */
     public function int(Field $field, $error = null)
     {
-        if (preg_match('/^\-?\d+$/', $this->getValue($field)) !== 1) {
+        if (preg_match('/^\-?\d+$/', $this->getInput($field)) !== 1) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -348,7 +354,7 @@ class InputValidator
      */
     public function numeric(Field $field, $error = null)
     {
-        $value = $this->getValue($field);
+        $value = $this->getInput($field);
 
         if (!(is_numeric($value) || preg_match('/^\d+\.\d+$/', $value) === 1)) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
@@ -367,7 +373,7 @@ class InputValidator
      */
     public function email(Field $field, $error = null)
     {
-        if (filter_var($this->getValue($field), FILTER_VALIDATE_EMAIL) === false) {
+        if (filter_var($this->getInput($field), FILTER_VALIDATE_EMAIL) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -391,7 +397,7 @@ class InputValidator
             $max = $max ?: $field->max_length;
         }
 
-        $length = strlen($this->getValue($field));
+        $length = strlen($this->getInput($field));
 
         if ($length < $min || $length > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
@@ -415,7 +421,7 @@ class InputValidator
             $min = $min ?: $field->min_length;
         }
 
-        $length = strlen($this->getValue($field));
+        $length = strlen($this->getInput($field));
 
         if ($length < $min) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
@@ -439,7 +445,7 @@ class InputValidator
             $max = $max ?: $field->max_length;
         }
 
-        $length = strlen($this->getValue($field));
+        $length = strlen($this->getInput($field));
 
         if ($length > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
@@ -475,7 +481,7 @@ class InputValidator
             }
         }
 
-        $value = $this->getValue($field);
+        $value = $this->getInput($field);
 
         if ($value < $min || $value > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
@@ -509,7 +515,7 @@ class InputValidator
             }
         }
 
-        $value = $this->getValue($field);
+        $value = $this->getInput($field);
 
         if ($value > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
@@ -543,7 +549,7 @@ class InputValidator
             }
         }
 
-        $value = $this->getValue($field);
+        $value = $this->getInput($field);
 
         if ($value < $min) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
@@ -564,7 +570,7 @@ class InputValidator
      */
     public function match(Field $field, $pattern, $error, array $values = array())
     {
-        if (!preg_match($pattern, $this->getValue($field))) {
+        if (!preg_match($pattern, $this->getInput($field))) {
             $this->error($field, $error, $values);
         }
 
@@ -601,7 +607,7 @@ class InputValidator
      */
     public function checked(BoolField $field, $error = null)
     {
-        if ($this->getValue($field) != $field->checked_value) {
+        if ($this->getInput($field) != $field->checked_value) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -629,7 +635,7 @@ class InputValidator
             }
         }
 
-        if (! in_array($this->getValue($field), $values, true)) {
+        if (! in_array($this->getInput($field), $values, true)) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
