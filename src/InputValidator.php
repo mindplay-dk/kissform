@@ -658,10 +658,10 @@ class InputValidator
 
         $time = @date_create_from_format($field->format, $input, $field->timezone);
 
-        if ($time && $time->format($field->format) == $input) {
-            return $this;
+        if (!$time || $time->format($field->format) != $input) {
+            $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
-        return $this->error($field, $error ?: $this->lang[__FUNCTION__]);
+        return $this;
     }
 }
