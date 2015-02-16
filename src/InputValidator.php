@@ -292,6 +292,25 @@ class InputValidator
     }
 
     /**
+     * Validate input matching a regular expression.
+     *
+     * @param Field    $field
+     * @param string   $pattern  regular expression pattern to match
+     * @param string   $error    error message template, using {name} placeholders
+     * @param string[] $values   map where placeholder => value (optional)
+     *
+     * @return $this
+     */
+    public function match(Field $field, $pattern, $error, array $values = array())
+    {
+        if (!preg_match($pattern, $this->getInput($field))) {
+            $this->error($field, $error, $values);
+        }
+
+        return $this;
+    }
+
+    /**
      * Validate required input.
      *
      * @param Field  $field
@@ -555,25 +574,6 @@ class InputValidator
 
         if ($value < $min) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Validate input matching a regular expression.
-     *
-     * @param Field    $field
-     * @param string   $pattern  regular expression pattern to match
-     * @param string   $error    error message template, using {name} placeholders
-     * @param string[] $values   map where placeholder => value (optional)
-     *
-     * @return $this
-     */
-    public function match(Field $field, $pattern, $error, array $values = array())
-    {
-        if (!preg_match($pattern, $this->getInput($field))) {
-            $this->error($field, $error, $values);
         }
 
         return $this;
