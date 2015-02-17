@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\BoolField;
+use mindplay\kissform\CsrfField;
 use mindplay\kissform\DateTimeField;
 use mindplay\kissform\EnumField;
 use mindplay\kissform\Field;
@@ -26,6 +27,9 @@ class SampleDescriptor
     const OPTION_ONE = 'one';
     const OPTION_TWO = 'two';
 
+    /** @var CsrfField */
+    public $csrf;
+
     /** @var EnumField */
     public $enum;
 
@@ -40,6 +44,8 @@ class SampleDescriptor
 
     public function __construct()
     {
+        $this->csrf = new CsrfField('csrf');
+
         $this->enum = new EnumField('enum');
 
         $this->enum->options = array(
@@ -117,7 +123,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 
         call_user_func($function, $validator, $field);
 
-        ok(!isset($validator->errors['value']), "field " . get_class($field) . " validates value: " . format($valid_value));
+        ok(!isset($validator->errors['value']), "field " . get_class($field) . " accepts value: " . format($valid_value));
     }
 
     foreach ($invalid as $invalid_value) {
@@ -198,11 +204,13 @@ test(
 
         eq($form->password($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="password" value="this &amp; that"/>', 'input with type=password');
 
-        eq($form->hidden($type->text), '<input class="form-control" name="text" placeholder="hello" type="hidden" value="this &amp; that"/>', 'hidden input (ignores $max_length)');
+        eq($form->hidden($type->text), '<input name="text" type="hidden" value="this &amp; that"/>', 'hidden input (no class, placeholder or maxlength, etc.)');
 
         eq($form->email($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="email" value="this &amp; that"/>', 'input with type=email (html5)');
 
         eq($form->textarea($type->text), '<textarea class="form-control" name="text" placeholder="hello">this &amp; that</textarea>', 'simple textarea with content');
+
+        ok(preg_match('#<input name="csrf" type="hidden" value="\w+"/>#', $form->csrf($type->csrf, 'abc123')) === 1, 'hidden input with CSRF token');
     }
 );
 
@@ -556,6 +564,71 @@ test(
             array('1975-07-07', '2014-01-01', '2014-12-31'),
             array('2014-1-1', '2014', '2014-13-01', '2014-12-32', '2014-0-1', '2014-1-0')
         );
+    }
+);
+
+test(
+    'validate csrf()',
+    function () {
+        $field = new CsrfField('value');
+
+        $secret = 'abc123';
+
+        $not_valid_yet =  $field->createToken($secret);
+
+        testValidator(
+            $field,
+            function (InputValidator $v, CsrfField $f) use ($secret) {
+                $v->csrf($f, $secret);
+            },
+            array(),
+            array($not_valid_yet)
+        );
+
+        $field->timestamp += $field->valid_from;
+        $valid = $not_valid_yet;
+
+        testValidator(
+            $field,
+            function (InputValidator $v, CsrfField $f) use ($secret) {
+                $v->csrf($f, $secret);
+            },
+            array($valid), // now it's valid!
+            array('', null, '1' . $valid) // never valid
+        );
+    }
+);
+
+test(
+    'CsrfField token expiration',
+    function () {
+        $field = new CsrfField('csrf');
+
+        $secret = 'abc123';
+
+        ok(strlen($field->createToken($secret)) > 0, 'it creates a token');
+        ok($field->createToken($secret) !== $field->createToken($secret), 'it creates unique tokens');
+
+        $token = $field->createToken($secret);
+
+        ok($field->checkToken($token, $secret) === false, 'token invalid when submitted too soon');
+
+        $timestamp = $field->timestamp;
+
+        $field->timestamp = $timestamp + $field->valid_from;
+
+        ok($field->checkToken($token, $secret) === true, 'token valid when submitted before expiration');
+
+        $field->timestamp = $timestamp + $field->valid_to;
+
+        ok($field->checkToken($token, $secret) === true, 'token valid when submitted on time');
+
+        ok($field->checkToken($token, $secret . '1') === false, 'token invalid when using the wrong secret');
+        ok($field->checkToken('1' . $token, $secret) === false, 'token invalid after tampering');
+
+        $field->timestamp = $timestamp + $field->valid_to + 1;
+
+        ok($field->checkToken($token, $secret) === false, 'token invalid when submitted after expiration');
     }
 );
 

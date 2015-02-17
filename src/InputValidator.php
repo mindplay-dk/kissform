@@ -56,6 +56,7 @@ class InputValidator
         'checked'   => 'Please confirm by ticking the {field} checkbox',
         'selected'  => 'Please select {field} from the list of available options',
         'datetime'  => '{field} must be a valid date/time',
+        'csrf'      => 'You may be submitting this form too quickly - please wait {time} seconds and try again...',
     );
 
     /**
@@ -660,6 +661,26 @@ class InputValidator
 
         if (!$time || $time->format($field->format) != $input) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate a cross-site request forgery (CSRF) token
+     *
+     * @param CsrfField $field
+     * @param string    $secret secret salt
+     * @param string    $error  error message
+     *
+     * @return $this
+     */
+    public function csrf(CsrfField $field, $secret, $error = null)
+    {
+        $input = $this->getInput($field);
+
+        if (! $field->checkToken($input, $secret)) {
+            $this->error($field, $error ?: $this->lang[__FUNCTION__], array('time' => $field->valid_from));
         }
 
         return $this;

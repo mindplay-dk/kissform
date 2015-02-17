@@ -378,7 +378,15 @@ class InputRenderer
      */
     public function hidden(TextField $field, array $attr = array())
     {
-        return $this->buildInput($field, 'hidden', $attr);
+        return $this->buildTag(
+            'input',
+            $attr + array(
+                'type' => 'hidden',
+                'name' => $this->createName($field),
+                'value' => $this->getInput($field),
+            ),
+            true
+        );
     }
 
     /**
@@ -511,7 +519,7 @@ class InputRenderer
      * Build a text input intended for use with a date picker on the client-side
      *
      * @param TextField $field
-     * @param array     $attr map of HTML attributes (for the div container)
+     * @param array     $attr map of HTML attributes (for the input element)
      *
      * @return string
      */
@@ -527,7 +535,7 @@ class InputRenderer
      * Build a text input intended for use with a date/time picker on the client-side
      *
      * @param TextField $field
-     * @param array     $attr map of HTML attributes (for the div container)
+     * @param array     $attr map of HTML attributes (for the input element)
      *
      * @return string
      */
@@ -537,5 +545,19 @@ class InputRenderer
             $field,
             $attr + $this->datetime_attrs
         );
+    }
+
+    /**
+     * Build a hidden input for a cross-site request forgery (CSRF) token
+     *
+     * @param CsrfField $field
+     * @param string    $secret secret salt
+     * @param array     $attr   map of HTML attributes (for the input element)
+     *
+     * @return string
+     */
+    public function csrf(CsrfField $field, $secret, array $attr = array())
+    {
+        return $this->hidden($field, array('value' => $field->createToken($secret)) + $attr);
     }
 }
