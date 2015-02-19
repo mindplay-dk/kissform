@@ -5,7 +5,7 @@ namespace mindplay\kissform;
 /**
  * This class represents a cross-site request forgery (CSRF) token
  */
-class CsrfField extends TextField
+class TokenField extends TextField
 {
     /** @var string hash algorithm */
     const HASH_ALGO = 'sha512';

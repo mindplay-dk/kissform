@@ -1,7 +1,7 @@
 <?php
 
 use mindplay\kissform\BoolField;
-use mindplay\kissform\CsrfField;
+use mindplay\kissform\TokenField;
 use mindplay\kissform\DateTimeField;
 use mindplay\kissform\EnumField;
 use mindplay\kissform\Field;
@@ -27,8 +27,8 @@ class SampleDescriptor
     const OPTION_ONE = 'one';
     const OPTION_TWO = 'two';
 
-    /** @var CsrfField */
-    public $csrf;
+    /** @var TokenField */
+    public $token;
 
     /** @var EnumField */
     public $enum;
@@ -44,7 +44,7 @@ class SampleDescriptor
 
     public function __construct()
     {
-        $this->csrf = new CsrfField('csrf');
+        $this->token = new TokenField('token');
 
         $this->enum = new EnumField('enum');
 
@@ -210,7 +210,7 @@ test(
 
         eq($form->textarea($type->text), '<textarea class="form-control" name="text" placeholder="hello">this &amp; that</textarea>', 'simple textarea with content');
 
-        ok(preg_match('#<input name="csrf" type="hidden" value="\w+"/>#', $form->csrf($type->csrf, 'abc123')) === 1, 'hidden input with CSRF token');
+        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->token($type->token, 'abc123')) === 1, 'hidden input with CSRF token');
     }
 );
 
@@ -568,9 +568,9 @@ test(
 );
 
 test(
-    'validate csrf()',
+    'validate token()',
     function () {
-        $field = new CsrfField('value');
+        $field = new TokenField('value');
 
         $secret = 'abc123';
 
@@ -578,8 +578,8 @@ test(
 
         testValidator(
             $field,
-            function (InputValidator $v, CsrfField $f) use ($secret) {
-                $v->csrf($f, $secret);
+            function (InputValidator $v, TokenField $f) use ($secret) {
+                $v->token($f, $secret);
             },
             array(),
             array($not_valid_yet)
@@ -590,8 +590,8 @@ test(
 
         testValidator(
             $field,
-            function (InputValidator $v, CsrfField $f) use ($secret) {
-                $v->csrf($f, $secret);
+            function (InputValidator $v, TokenField $f) use ($secret) {
+                $v->token($f, $secret);
             },
             array($valid), // now it's valid!
             array('', null, '1' . $valid) // never valid
@@ -600,9 +600,9 @@ test(
 );
 
 test(
-    'CsrfField token expiration',
+    'TokenField token expiration',
     function () {
-        $field = new CsrfField('csrf');
+        $field = new TokenField('token');
 
         $secret = 'abc123';
 
