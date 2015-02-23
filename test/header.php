@@ -2,6 +2,14 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    $error = new ErrorException($errstr, 0, $errno, $errfile, $errline);
+
+    if ($error->getSeverity() & error_reporting()) {
+        throw $error;
+    }
+});
+
 // https://gist.github.com/mindplay-dk/4260582
 
 /**
