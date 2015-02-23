@@ -15,7 +15,7 @@ class InputModel
     /**
      * @var string[] map where field name => error message
      */
-    public $errors = array();
+    public $errors;
 
     /**
      * @param array    $input  map where field name => input value(s)
@@ -61,6 +61,23 @@ class InputModel
     }
 
     /**
+     * Set an error message for a given Field, if one is not already set for that
+     * Field - we only care about the first error message for each Field, so add
+     * error messages in order of importance.
+     *
+     * @param Field  $field the field for which to set an error-message
+     * @param string $error error message
+     *
+     * @return void
+     */
+    public function setError(Field $field, $error)
+    {
+        if (! isset($this->errors[$field->name])) {
+            $this->errors[$field->name] = $error;
+        }
+    }
+
+    /**
      * @param Field $field
      *
      * @return bool true, if the given Field has an error message
@@ -73,10 +90,30 @@ class InputModel
     }
 
     /**
+     * Clear the current error message for a given Field
+     *
+     * @param Field $field Field to clear error message for
+     */
+    public function clearError(Field $field)
+    {
+        unset($this->errors[$field->name]);
+    }
+
+    /**
      * @return bool true, if the form contains any error(s)
      */
     public function hasErrors()
     {
         return count($this->errors) !== 0;
+    }
+
+    /**
+     * Clears any accummulated error messages
+     *
+     * @return void
+     */
+    public function clearErrors()
+    {
+        $this->errors = array();
     }
 }

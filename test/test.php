@@ -307,7 +307,7 @@ test(
 
         eq($validator->model->errors['email'], 'some error', 'first error message is retained');
 
-        $validator->clear($type->email);
+        $validator->model->clearError($type->email);
 
         eq($validator->valid, true, 'error message cleared');
 

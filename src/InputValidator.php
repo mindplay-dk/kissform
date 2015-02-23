@@ -139,27 +139,13 @@ class InputValidator
     }
 
     /**
-     * Clear the current error message for a given Field
-     *
-     * @param Field $field Field to clear error message for
-     *
-     * @return $this
-     */
-    public function clear(Field $field)
-    {
-        unset($this->model->errors[$field->name]);
-
-        return $this;
-    }
-
-    /**
      * Reset all accumulated error messages (for all fields)
      *
      * @return $this
      */
     public function reset()
     {
-        $this->model->errors = array();
+        $this->model->clearErrors();
 
         return $this;
     }
@@ -251,16 +237,21 @@ class InputValidator
      * Note that the field title (as provided by {@link getTitle()}) is always
      * available for substitution using the {field} placeholder.
      *
-     * @param Field    $field
-     * @param string   $template error message template, using {name} placeholders
-     * @param string[] $values   map where placeholder => value (optional)
+     * @param Field         $field
+     * @param string        $template error message template, using {name} placeholders
+     * @param string[]|null $values   map where placeholder => value (optional)
      *
      * @return $this
      */
-    public function error(Field $field, $template, array $values = array())
+    public function error(Field $field, $template, $values = null)
     {
-        if (isset($this->model->errors[$field->name])) {
+        if ($this->model->hasError($field)) {
             return $this; // ignore error - the first error for this field was already recorded
+        }
+
+        if (empty($values)) {
+            $this->model->setError($field, $template);
+            return $this; // optimization (no placeholder values given)
         }
 
         $__template = $template;
@@ -269,12 +260,13 @@ class InputValidator
         unset($template, $field);
 
         if (!isset($values['field'])) {
+            /** @noinspection PhpUnusedLocalVariableInspection local variable used for templating below */
             $field = $this->getTitle($__field);
         }
 
         extract($values);
 
-        $this->model->errors[$__field->name] = preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template);
+        $this->model->setError($__field, preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template));
 
         return $this;
     }
@@ -477,7 +469,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->model->errors[$field->name])) {
+        if ($this->model->hasError($field)) {
             return $this;
         }
 
@@ -512,7 +504,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->model->errors[$field->name])) {
+        if ($this->model->hasError($field)) {
             return $this;
         }
 
@@ -546,7 +538,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->model->errors[$field->name])) {
+        if ($this->model->hasError($field)) {
             return $this;
         }
 
