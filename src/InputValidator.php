@@ -670,16 +670,15 @@ class InputValidator
      * Validate a cross-site request forgery (CSRF) token
      *
      * @param TokenField $field
-     * @param string    $secret secret salt
      * @param string    $error  error message
      *
      * @return $this
      */
-    public function token(TokenField $field, $secret, $error = null)
+    public function token(TokenField $field, $error = null)
     {
         $input = $this->getInput($field);
 
-        if (! $field->checkToken($input, $secret)) {
+        if (! $field->checkToken($input)) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('time' => $field->valid_from));
         }
 

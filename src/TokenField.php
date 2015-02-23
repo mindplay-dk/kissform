@@ -35,25 +35,30 @@ class TokenField extends TextField
     public $valid_to = 1200;
 
     /**
-     * @param string $name field name
+     * @var string secret salt
      */
-    public function __construct($name)
+    public $secret;
+
+    /**
+     * @param string $name   field name
+     * @param string $secret secret salt
+     */
+    public function __construct($name, $secret)
     {
         parent::__construct($name);
 
+        $this->secret = $secret;
         $this->timestamp = time();
     }
 
     /**
-     * @param string $secret application-specific secret salt
-     *
      * @return string new CSRF token
      */
-    public function createToken($secret)
+    public function createToken()
     {
         $salt = sha1(microtime(true) . rand(0,9999999));
 
-        $hash = hash_hmac(self::HASH_ALGO, $salt . $this->timestamp, $secret);
+        $hash = hash_hmac(self::HASH_ALGO, $salt . $this->timestamp, $this->secret);
 
         return base64_encode(json_encode(array(
             self::KEY_TIMESTAMP => $this->timestamp,
@@ -63,12 +68,11 @@ class TokenField extends TextField
     }
 
     /**
-     * @param string $token  posted CSRF token
-     * @param string $secret application-specific secret salt
+     * @param string $token posted CSRF token
      *
      * @return bool true, if valid; otherwise false
      */
-    public function checkToken($token, $secret)
+    public function checkToken($token)
     {
         $data = @json_decode(base64_decode($token), true);
 
@@ -80,7 +84,7 @@ class TokenField extends TextField
         $salt = $data[self::KEY_SALT];
         $hash = $data[self::KEY_HASH];
 
-        if ($hash !== hash_hmac(self::HASH_ALGO, $salt . $timestamp, $secret)) {
+        if ($hash !== hash_hmac(self::HASH_ALGO, $salt . $timestamp, $this->secret)) {
             return false; // wrong hash
         }
 

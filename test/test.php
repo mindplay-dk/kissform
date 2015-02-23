@@ -44,7 +44,7 @@ class SampleDescriptor
 
     public function __construct()
     {
-        $this->token = new TokenField('token');
+        $this->token = new TokenField('token', 'abc123');
 
         $this->enum = new EnumField('enum');
 
@@ -210,7 +210,7 @@ test(
 
         eq($form->textarea($type->text), '<textarea class="form-control" name="text" placeholder="hello">this &amp; that</textarea>', 'simple textarea with content');
 
-        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->token($type->token, 'abc123')) === 1, 'hidden input with CSRF token');
+        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->token($type->token)) === 1, 'hidden input with CSRF token');
     }
 );
 
@@ -570,16 +570,14 @@ test(
 test(
     'validate token()',
     function () {
-        $field = new TokenField('value');
+        $field = new TokenField('value', 'abc123');
 
-        $secret = 'abc123';
-
-        $not_valid_yet =  $field->createToken($secret);
+        $not_valid_yet =  $field->createToken();
 
         testValidator(
             $field,
-            function (InputValidator $v, TokenField $f) use ($secret) {
-                $v->token($f, $secret);
+            function (InputValidator $v, TokenField $f) {
+                $v->token($f);
             },
             array(),
             array($not_valid_yet)
@@ -590,8 +588,8 @@ test(
 
         testValidator(
             $field,
-            function (InputValidator $v, TokenField $f) use ($secret) {
-                $v->token($f, $secret);
+            function (InputValidator $v, TokenField $f) {
+                $v->token($f);
             },
             array($valid), // now it's valid!
             array('', null, '1' . $valid) // never valid
@@ -602,33 +600,36 @@ test(
 test(
     'TokenField token expiration',
     function () {
-        $field = new TokenField('token');
+        $field = new TokenField('token', 'abc123');
 
-        $secret = 'abc123';
+        $token = $field->createToken();
+        ok(strlen($token) > 0, 'it creates a token', base64_decode($token));
 
-        ok(strlen($field->createToken($secret)) > 0, 'it creates a token');
-        ok($field->createToken($secret) !== $field->createToken($secret), 'it creates unique tokens');
+        ok($token !== $field->createToken(), 'it creates unique tokens');
 
-        $token = $field->createToken($secret);
+        $token = $field->createToken();
 
-        ok($field->checkToken($token, $secret) === false, 'token invalid when submitted too soon');
+        ok($field->checkToken($token) === false, 'token invalid when submitted too soon');
 
         $timestamp = $field->timestamp;
 
         $field->timestamp = $timestamp + $field->valid_from;
 
-        ok($field->checkToken($token, $secret) === true, 'token valid when submitted before expiration');
+        ok($field->checkToken($token) === true, 'token valid when submitted before expiration');
 
         $field->timestamp = $timestamp + $field->valid_to;
 
-        ok($field->checkToken($token, $secret) === true, 'token valid when submitted on time');
+        ok($field->checkToken($token) === true, 'token valid when submitted on time');
 
-        ok($field->checkToken($token, $secret . '1') === false, 'token invalid when using the wrong secret');
-        ok($field->checkToken('1' . $token, $secret) === false, 'token invalid after tampering');
+        $secret = $field->secret; // save correct secret
+        $field->secret .= '1'; // wrongify
+        ok($field->checkToken($token) === false, 'token invalid when using the wrong secret');
+        $field->secret = $secret; // restore correct secret
+        ok($field->checkToken('1' . $token) === false, 'token invalid after tampering');
 
         $field->timestamp = $timestamp + $field->valid_to + 1;
 
-        ok($field->checkToken($token, $secret) === false, 'token invalid when submitted after expiration');
+        ok($field->checkToken($token) === false, 'token invalid when submitted after expiration');
     }
 );
 

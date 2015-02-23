@@ -551,13 +551,12 @@ class InputRenderer
      * Build a hidden input for a cross-site request forgery (CSRF) token
      *
      * @param TokenField $field
-     * @param string    $secret secret salt
-     * @param array     $attr   map of HTML attributes (for the input element)
+     * @param array      $attr map of HTML attributes (for the input element)
      *
      * @return string
      */
-    public function token(TokenField $field, $secret, array $attr = array())
+    public function token(TokenField $field, array $attr = array())
     {
-        return $this->hidden($field, array('value' => $field->createToken($secret)) + $attr);
+        return $this->hidden($field, array('value' => $field->createToken()) + $attr);
     }
 }
