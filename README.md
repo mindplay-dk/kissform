@@ -42,7 +42,7 @@ Use the model to render form inputs:
 ```PHP
 $form = new InputRenderer($input, 'user');
 
-$u = new UserForm();
+$t = new UserForm();
 
 ?>
 <form method="post">
