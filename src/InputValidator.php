@@ -249,19 +249,20 @@ class InputValidator
             return $this; // ignore error - the first error for this field was already recorded
         }
 
-        $__template = $template;
-        $__field = $field;
-
-        unset($template, $field);
-
         if (!isset($values['field'])) {
-            /** @noinspection PhpUnusedLocalVariableInspection local variable used for templating below */
-            $field = $this->getTitle($__field);
+            $values['field'] = $this->getTitle($field);
         }
 
-        extract($values);
-
-        $this->model->setError($__field, preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template));
+        $this->model->setError(
+            $field,
+            preg_replace_callback(
+                '/\{([^\{]{1,100}?)\}/',
+                function ($x) use ($values) {
+                    return $values[$x[1]];
+                },
+                $template
+            )
+        );
 
         return $this;
     }
