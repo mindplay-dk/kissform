@@ -21,14 +21,9 @@ use RuntimeException;
 class InputValidator
 {
     /**
-     * @var array form input (maps of strings, possibly nested)
+     * @var InputModel input model
      */
-    public $input;
-
-    /**
-     * @var string[] error messages indexed by field name
-     */
-    public $errors = array();
+    public $model;
 
     /**
      * @var string[] map where field name => display name
@@ -67,11 +62,11 @@ class InputValidator
     public $password_pattern = "#.*^(?=.*[a-z])(?=.*[A-Z0-9]).*$#";
 
     /**
-     * @param array $input the form input to be validated
+     * @param InputModel|array|null $model the form input to be validated
      */
-    public function __construct(array $input)
+    public function __construct($model)
     {
-        $this->input = $input;
+        $this->model = InputModel::create($model);
     }
 
     /**
@@ -81,15 +76,7 @@ class InputValidator
      */
     protected function getInput(Field $field)
     {
-        if (!isset($this->input[$field->name])) {
-            return null;
-        }
-
-        if (is_scalar($this->input[$field->name])) {
-            return (string)$this->input[$field->name];
-        }
-
-        return $this->input[$field->name];
+        return $this->model->getInput($field);
     }
 
     /**
@@ -107,10 +94,10 @@ class InputValidator
     {
         switch ($name) {
             case 'valid':
-                return count($this->errors) === 0;
+                return $this->model->hasErrors() === false;
 
             case 'invalid':
-                return count($this->errors) > 0;
+                return $this->model->hasErrors();
 
             default:
                 throw new RuntimeException("undefined property \${$name}");
@@ -160,7 +147,7 @@ class InputValidator
      */
     public function clear(Field $field)
     {
-        unset($this->errors[$field->name]);
+        unset($this->model->errors[$field->name]);
 
         return $this;
     }
@@ -172,7 +159,7 @@ class InputValidator
      */
     public function reset()
     {
-        $this->errors = array();
+        $this->model->errors = array();
 
         return $this;
     }
@@ -272,7 +259,7 @@ class InputValidator
      */
     public function error(Field $field, $template, array $values = array())
     {
-        if (isset($this->errors[$field->name])) {
+        if (isset($this->model->errors[$field->name])) {
             return $this; // ignore error - the first error for this field was already recorded
         }
 
@@ -287,7 +274,7 @@ class InputValidator
 
         extract($values);
 
-        $this->errors[$__field->name] = preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template);
+        $this->model->errors[$__field->name] = preg_replace('/\{([^\{]{1,100}?)\}/e', "$$1", $__template);
 
         return $this;
     }
@@ -490,7 +477,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->errors[$field->name])) {
+        if (isset($this->model->errors[$field->name])) {
             return $this;
         }
 
@@ -525,7 +512,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->errors[$field->name])) {
+        if (isset($this->model->errors[$field->name])) {
             return $this;
         }
 
@@ -559,7 +546,7 @@ class InputValidator
     {
         $this->numeric($field);
 
-        if (isset($this->errors[$field->name])) {
+        if (isset($this->model->errors[$field->name])) {
             return $this;
         }
 

@@ -16,14 +16,9 @@ class InputRenderer
     public $encoding = 'UTF-8';
 
     /**
-     * @var array form input (maps of strings, possibly nested)
+     * @var InputModel input model
      */
-    public $input;
-
-    /**
-     * @var string[] map where field name => error message
-     */
-    public $errors = array();
+    public $model;
 
     /**
      * @var string form element name-attribute prefix
@@ -99,13 +94,13 @@ class InputRenderer
     );
 
     /**
-     * @param array  $input       form input: maps of strings, possibly nested (for example $_GET or $_POST)
-     * @param string $name_prefix base name for inputs, e.g. 'myform' or 'myform[123]', etc.
-     * @param null   $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
+     * @param InputModel|array|null $model       input model, or (possibly nested) input array (e.g. $_GET or $_POST)
+     * @param string                $name_prefix base name for inputs, e.g. 'myform' or 'myform[123]', etc.
+     * @param null                  $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
-    public function __construct(array $input, $name_prefix = null, $id_prefix = null)
+    public function __construct($model = null, $name_prefix = null, $id_prefix = null)
     {
-        $this->input = $input;
+        $this->model = InputModel::create($model);
         $this->name_prefix = $name_prefix;
         $this->id_prefix = $id_prefix === null
             ? preg_replace('/\W/', '', $this->name_prefix)
@@ -119,15 +114,7 @@ class InputRenderer
      */
     protected function getInput(Field $field)
     {
-        if (!isset($this->input[$field->name])) {
-            return null;
-        }
-
-        if (is_scalar($this->input[$field->name])) {
-            return (string)$this->input[$field->name];
-        }
-
-        return $this->input[$field->name];
+        return $this->model->getInput($field);
     }
 
     /**
@@ -162,18 +149,6 @@ class InputRenderer
     protected function isRequired(Field $field)
     {
         return $field->required;
-    }
-
-    /**
-     * @param Field $field
-     *
-     * @return bool true, if the given Field has an error message
-     *
-     * @see $errors
-     */
-    protected function hasError(Field $field)
-    {
-        return isset($this->errors[$field->name]);
     }
 
     /**
@@ -289,7 +264,7 @@ class InputRenderer
             $classes[] = $this->required_class;
         }
 
-        if ($this->error_class !== null && $this->hasError($field)) {
+        if ($this->error_class !== null && $this->model->hasError($field)) {
             $classes[] = $this->error_class;
         }
 

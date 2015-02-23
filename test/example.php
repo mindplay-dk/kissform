@@ -71,7 +71,7 @@ if (isset($_POST['form'])) {
         ->checked($t->i_agree);
 
     if ($validator->invalid) {
-        $_SESSION[__FILE__]['errors'] = $validator->errors;
+        $_SESSION[__FILE__]['errors'] = $validator->model->errors;
 
         header('Location: ' . $_SERVER['REQUEST_URI']);
 
@@ -86,7 +86,7 @@ if (isset($_POST['form'])) {
 $form = new InputRenderer($input, 'form');
 
 if (isset($_SESSION[__FILE__]['errors'])) {
-    $form->errors = $_SESSION[__FILE__]['errors'];
+    $form->model->errors = $_SESSION[__FILE__]['errors'];
 
     unset($_SESSION[__FILE__]['errors']);
 }
@@ -125,10 +125,10 @@ if (isset($_SESSION[__FILE__]['errors'])) {
     <div class="alert alert-success"><?= $message ?></div>
 <?php endif ?>
 
-<?php if ($form->errors): ?>
+<?php if ($form->model->hasErrors()): ?>
     <div class="alert alert-danger">
         <ul>
-            <?php foreach ($form->errors as $error): ?>
+            <?php foreach ($form->model->errors as $error): ?>
             <li><?= $error ?></li>
             <?php endforeach ?>
         </ul>

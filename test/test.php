@@ -123,7 +123,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 
         call_user_func($function, $validator, $field);
 
-        ok(!isset($validator->errors['value']), "field " . get_class($field) . " accepts value: " . format($valid_value));
+        ok(!isset($validator->model->errors['value']), "field " . get_class($field) . " accepts value: " . format($valid_value));
     }
 
     foreach ($invalid as $invalid_value) {
@@ -131,7 +131,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 
         call_user_func($function, $validator, $field);
 
-        ok(isset($validator->errors['value']), "field " . get_class($field) . " rejects value: " . format($invalid_value) . " (" . @$validator->errors['value'] . ")");
+        ok(isset($validator->model->errors['value']), "field " . get_class($field) . " rejects value: " . format($invalid_value) . " (" . @$validator->model->errors['value'] . ")");
     }
 }
 
@@ -139,7 +139,7 @@ test(
     'handles name, id and class-attributes',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
         eq($form->text($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'merges multi-value class attribute');
 
@@ -158,11 +158,11 @@ test(
     'builds input groups',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
         eq($form->group($type->text) . $form->endGroup(), '<div class="form-group"></div>');
 
-        $form->errors['text'] = 'some error';
+        $form->model->errors['text'] = 'some error';
 
         eq($form->group($type->text), '<div class="form-group has-error">');
 
@@ -180,11 +180,11 @@ test(
     'builds various text input tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
         eq($form->text($type->text), '<input class="form-control" name="text" type="text"/>', 'basic input with no value-attribute');
 
-        $form->input['text'] = 'Hello World';
+        $form->model->input['text'] = 'Hello World';
 
         eq($form->text($type->text), '<input class="form-control" name="text" type="text" value="Hello World"/>', 'basic input with value-attribute');
 
@@ -198,7 +198,7 @@ test(
         eq($form->text($type->text, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
         eq($form->text($type->text, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="text" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
 
-        $form->input['text'] = 'this & that';
+        $form->model->input['text'] = 'this & that';
 
         eq($form->text($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
 
@@ -218,7 +218,7 @@ test(
     'builds label tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
         expect(
             'RuntimeException',
@@ -228,7 +228,7 @@ test(
             }
         );
 
-        $form = new InputRenderer(array(), 'form');
+        $form = new InputRenderer(null, 'form');
 
         eq($form->label($type->text), '', 'returns an empty string for unlabeled input');
 
@@ -242,7 +242,7 @@ test(
     'builds labeled checkboxes',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array(), 'form');
+        $form = new InputRenderer(null, 'form');
 
         $type->bool->label = 'I agree';
 
@@ -254,7 +254,7 @@ test(
     'builds select/option tags',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
         $type->enum->required = false;
 
@@ -266,13 +266,13 @@ test(
     'builds date/time text inputs',
     function () {
         $type = new SampleDescriptor();
-        $form = new InputRenderer(array());
+        $form = new InputRenderer();
 
-        $form->input['text'] = '1975-07-07';
+        $form->model->input['text'] = '1975-07-07';
 
         eq($form->date($type->text), '<input class="form-control" data-ui="datepicker" name="text" readonly="readonly" type="text" value="1975-07-07"/>');
 
-        $form->input['text'] = '1975-07-07 12:00:00';
+        $form->model->input['text'] = '1975-07-07 12:00:00';
 
         eq($form->datetime($type->text), '<input class="form-control" data-ui="datetimepicker" name="text" readonly="readonly" type="text" value="1975-07-07 12:00:00"/>');
     }
@@ -301,11 +301,11 @@ test(
         eq($validator->valid, false, 'errors are present (is not valid)');
         eq($validator->invalid, true, 'errors are present (is invalid)');
 
-        eq($validator->errors['email'], 'some error', 'error messages get formatted');
+        eq($validator->model->errors['email'], 'some error', 'error messages get formatted');
 
         $validator->error($type->email, 'some other error');
 
-        eq($validator->errors['email'], 'some error', 'first error message is retained');
+        eq($validator->model->errors['email'], 'some error', 'first error message is retained');
 
         $validator->clear($type->email);
 
@@ -435,13 +435,13 @@ test(
 
         $validator = new InputValidator(array('value' => 'foo', 'other' => 'foo'));
         $validator->confirm($field, $other);
-        ok(!isset($validator->errors['value']), 'value field has no error');
-        ok(!isset($validator->errors['other']), 'other field has no error');
+        ok(!isset($validator->model->errors['value']), 'value field has no error');
+        ok(!isset($validator->model->errors['other']), 'other field has no error');
 
         $validator = new InputValidator(array('value' => 'foo', 'other' => 'bar'));
         $validator->confirm($field, $other);
-        ok(!isset($validator->errors['value']), 'value field has no error');
-        ok(isset($validator->errors['other']), 'other field has error');
+        ok(!isset($validator->model->errors['value']), 'value field has no error');
+        ok(isset($validator->model->errors['other']), 'other field has error');
     }
 );
 
