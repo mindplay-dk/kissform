@@ -37,7 +37,7 @@ class InputValidator
      */
     public $lang = array(
         'required'  => '{field} is required',
-        'confirm'   => '{field} must match {confirm_field}',
+        'confirm'   => 'The input must match {field}',
         'int'       => '{field} must be a whole number',
         'numeric'   => '{field} must be a number',
         'email'     => '{field} must be a valid e-mail address',
@@ -257,7 +257,11 @@ class InputValidator
             $field,
             preg_replace_callback(
                 '/\{([^\{]{1,100}?)\}/',
-                function ($x) use ($values) {
+                function ($x) use ($template, $values) {
+                    if (!array_key_exists($x[1], $values)) {
+                        throw new RuntimeException("token value for {$x[0]} missing in template: \"{$template}\"");
+                    }
+
                     return $values[$x[1]];
                 },
                 $template
@@ -306,19 +310,22 @@ class InputValidator
     /**
      * Validate repeated input (e.g. confirming e-mail address or password, etc.)
      *
-     * @param Field  $field
-     * @param Field  $confirm_field other Field (for comparison)
+     * The error message will be applied to the confirmation field, not to the
+     * original input field, which is assumed to have it's own validation rules.
+     *
+     * @param Field  $field         original input field
+     * @param Field  $confirm_field input confirmation field (for comparison)
      * @param string $error         error message template
      *
      * @return $this
      */
-    public function confirm(Field $field, $confirm_field, $error = null)
+    public function confirm(Field $field, Field $confirm_field, $error = null)
     {
         if ($this->getInput($field) !== $this->getInput($confirm_field)) {
             $this->error(
                 $confirm_field,
                 $error ?: $this->lang[__FUNCTION__],
-                array('confirm_field' => $this->getTitle($confirm_field)));
+                array('field' => $this->getTitle($field)));
         }
 
         return $this;
