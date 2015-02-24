@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\BoolField;
+use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
 use mindplay\kissform\InputValidator;
 use mindplay\kissform\IntField;
@@ -48,20 +49,16 @@ class DonationForm
 
 $t = new DonationForm();
 
-$input = array();
+$model = InputModel::create(@$_SESSION[__FILE__]);
 
-if (isset($_SESSION[__FILE__]['input'])) {
-    $input = $_SESSION[__FILE__]['input'];
-
-    unset($_SESSION[__FILE__]['input']);
-}
+unset($_SESSION[__FILE__]);
 
 if (isset($_POST['form'])) {
-    $input = $_POST['form'];
+    $model->input = $_POST['form'];
 
-    $_SESSION[__FILE__]['input'] = $input;
+    $_SESSION[__FILE__] = $model;
 
-    $validator = new InputValidator($input);
+    $validator = new InputValidator($model);
 
     $validator
         ->required($t->first_name)
@@ -71,8 +68,6 @@ if (isset($_POST['form'])) {
         ->checked($t->i_agree);
 
     if ($validator->invalid) {
-        $_SESSION[__FILE__]['errors'] = $validator->model->errors;
-
         header('Location: ' . $_SERVER['REQUEST_URI']);
 
         exit;
@@ -83,13 +78,7 @@ if (isset($_POST['form'])) {
     unset($validator);
 }
 
-$form = new InputRenderer($input, 'form');
-
-if (isset($_SESSION[__FILE__]['errors'])) {
-    $form->model->errors = $_SESSION[__FILE__]['errors'];
-
-    unset($_SESSION[__FILE__]['errors']);
-}
+$form = new InputRenderer($model, 'form');
 
 ?>
 <!DOCTYPE html>
@@ -97,14 +86,8 @@ if (isset($_SESSION[__FILE__]['errors'])) {
 
 <head>
     <title>Donation Form</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
-
-    <style type="text/css">
-        .message { margin-bottom:20px; color:white; background: rgba(75, 211, 64, 0.82); border:solid #3da349; padding:4px; }
-    </style>
 </head>
 
 <body>
@@ -125,10 +108,10 @@ if (isset($_SESSION[__FILE__]['errors'])) {
     <div class="alert alert-success"><?= $message ?></div>
 <?php endif ?>
 
-<?php if ($form->model->hasErrors()): ?>
+<?php if ($model->hasErrors()): ?>
     <div class="alert alert-danger">
         <ul>
-            <?php foreach ($form->model->errors as $error): ?>
+            <?php foreach ($model->errors as $error): ?>
             <li><?= $error ?></li>
             <?php endforeach ?>
         </ul>
