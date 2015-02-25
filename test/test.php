@@ -312,7 +312,7 @@ test(
 
         $form->model->input['datetime'] = '1975-07-07';
 
-        eq($form->input($type->datetime), '<input class="form-control" data-ui="datetimepicker" name="datetime" readonly="readonly" type="text" value="1975-07-07"/>');
+        eq($form->input($type->datetime), '<input class="form-control" data-ui="datetimepicker" name="datetime" readonly type="text" value="1975-07-07"/>');
     }
 );
 
