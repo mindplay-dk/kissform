@@ -6,7 +6,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 
 /**
- * This class provides information about a date/time field.
+ * This class provides information about a date/time input.
  *
  * You should specify the {@link $format} and call {@link setTimeZone()} - by default,
  * the timezone is obtained from {@date_default_timezone_get()} which is system-dependent.
@@ -15,7 +15,7 @@ use InvalidArgumentException;
  *
  * {@link http://php.net/manual/en/datetime.createfromformat.php#refsect1-datetime.createfromformat-parameters}
  */
-class DateTimeField extends TextField
+class DateTimeField extends Field implements RenderableField
 {
     /**
      * @var string input date/time format string
@@ -26,6 +26,14 @@ class DateTimeField extends TextField
      * @var DateTimeZone input time-zone
      */
     public $timezone;
+
+    /**
+     * @var string[] map of HTML attributes to apply
+     */
+    public $attrs = array(
+        'readonly' => 'readonly',
+        'data-ui'  => 'datetimepicker',
+    );
 
     /**
      * @param string $name field name
@@ -54,4 +62,14 @@ class DateTimeField extends TextField
     }
 
     // TODO getInput() and setInput() and unit-test
+
+    // TODO extract abstract base-class and add DateField
+
+    /**
+     * {@inheritdoc}
+     */
+    public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
+    {
+        return $renderer->buildInput($this, 'text', $attr + $this->attrs);
+    }
 }

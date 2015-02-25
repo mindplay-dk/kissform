@@ -2,7 +2,6 @@
 
 namespace mindplay\kissform;
 
-use DateTime;
 use RuntimeException;
 
 /**
@@ -192,7 +191,7 @@ class InputValidator
             $this->required($field);
         }
 
-        if ($field instanceof BoolField) {
+        if ($field instanceof CheckboxField) {
             $this->checked($field);
         }
 
@@ -583,14 +582,14 @@ class InputValidator
     /**
      * Validate a required checkbox (for confirmations, e.g. accepted privacy policy or terms of service)
      *
-     * @param BoolField $field
+     * @param CheckboxField $field
      * @param string    $error error message
      *
      * @return $this
      *
      * @see Field::$checked_value
      */
-    public function checked(BoolField $field, $error = null)
+    public function checked(CheckboxField $field, $error = null)
     {
         if ($this->getInput($field) != $field->checked_value) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);

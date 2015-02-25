@@ -1,6 +1,6 @@
 <?php
 
-use mindplay\kissform\BoolField;
+use mindplay\kissform\CheckboxField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
 use mindplay\kissform\InputValidator;
@@ -22,7 +22,7 @@ class DonationForm
     /** @var IntField */
     public $amount;
 
-    /** @var BoolField */
+    /** @var CheckboxField */
     public $i_agree;
 
     public function __construct()
@@ -41,7 +41,7 @@ class DonationForm
         $this->amount->max_value = 1000;
         $this->amount->placeholder = '$20 up to $1,000';
 
-        $this->i_agree = new BoolField('i_agree');
+        $this->i_agree = new CheckboxField('i_agree');
         $this->i_agree->label = 'I Agree to Donate';
         $this->i_agree->required = true;
     }
@@ -97,10 +97,10 @@ $form = new InputRenderer($model, 'form');
 <h1>Make a Donation</h1>
 
 <form method="post">
-    <?= $form->group($t->first_name) . $form->label($t->first_name) . $form->text($t->first_name) . $form->endGroup() ?>
-    <?= $form->group($t->last_name) . $form->label($t->last_name) . $form->text($t->last_name) . $form->endGroup() ?>
-    <?= $form->group($t->amount) . $form->label($t->amount) . $form->text($t->amount) . $form->endGroup() ?>
-    <?= $form->checkbox($t->i_agree) ?>
+    <?= $form->group($t->first_name) . $form->label($t->first_name) . $form->input($t->first_name) . $form->endGroup() ?>
+    <?= $form->group($t->last_name) . $form->label($t->last_name) . $form->input($t->last_name) . $form->endGroup() ?>
+    <?= $form->group($t->amount) . $form->label($t->amount) . $form->input($t->amount) . $form->endGroup() ?>
+    <?= $form->input($t->i_agree) ?>
     <input class="btn btn-lg btn-primary" type="submit" value="Donate" />
 </form>
 

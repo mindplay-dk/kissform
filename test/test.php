@@ -1,10 +1,14 @@
 <?php
 
-use mindplay\kissform\BoolField;
+use mindplay\kissform\CheckboxField;
+use mindplay\kissform\EmailField;
+use mindplay\kissform\HiddenField;
 use mindplay\kissform\InputModel;
+use mindplay\kissform\PasswordField;
+use mindplay\kissform\TextArea;
 use mindplay\kissform\TokenField;
 use mindplay\kissform\DateTimeField;
-use mindplay\kissform\EnumField;
+use mindplay\kissform\SelectField;
 use mindplay\kissform\Field;
 use mindplay\kissform\InputRenderer;
 use mindplay\kissform\IntField;
@@ -31,34 +35,57 @@ class SampleDescriptor
     /** @var TokenField */
     public $token;
 
-    /** @var EnumField */
+    /** @var SelectField */
     public $enum;
+
+    /** @var DateTimeField */
+    public $datetime;
 
     /** @var TextField */
     public $text;
 
+    /** @var TextArea */
+    public $textarea;
+
+    /** @var PasswordField */
+    public $password;
+
+    /** @var HiddenField */
+    public $hidden;
+
+    /** @var EmailField */
+    public $email;
+
     /** @var IntField */
     public $int;
 
-    /** @var BoolField */
+    /** @var CheckboxField */
     public $bool;
 
     public function __construct()
     {
         $this->token = new TokenField('token', 'abc123');
 
-        $this->enum = new EnumField('enum');
-
-        $this->enum->options = array(
+        $this->enum = new SelectField('enum', array(
             self::OPTION_ONE => 'Option One',
             self::OPTION_TWO => 'Option Two',
-        );
+        ));
+
+        $this->datetime = new DateTimeField('datetime');
 
         $this->text = new TextField('text');
 
+        $this->textarea = new TextArea('textarea');
+
+        $this->password = new PasswordField('password');
+
+        $this->hidden = new HiddenField('hidden');
+
+        $this->email = new EmailField('email');
+
         $this->int = new IntField('int');
 
-        $this->bool = new BoolField('bool');
+        $this->bool = new CheckboxField('bool');
     }
 }
 
@@ -79,10 +106,10 @@ class ValidationDescriptor
     /** @var TextField */
     public $password;
 
-    /** @var BoolField */
+    /** @var CheckboxField */
     public $agree;
 
-    /** @var EnumField */
+    /** @var SelectField */
     public $cause;
 
     public function __construct()
@@ -97,13 +124,12 @@ class ValidationDescriptor
 
         $this->password = new TextField('password');
 
-        $this->agree = new BoolField('agree');
+        $this->agree = new CheckboxField('agree');
 
-        $this->cause = new EnumField('cause');
-        $this->cause->options = array(
+        $this->cause = new SelectField('cause', array(
             self::CAUSE_PROGRAMMERS => 'Starving Programmers',
             self::CAUSE_ARTISTS => 'Starving Artists',
-        );
+        ));
     }
 }
 
@@ -142,7 +168,7 @@ test(
         $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        eq($form->text($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'merges multi-value class attribute');
+        eq($form->input($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'merges multi-value class attribute');
 
         eq(invoke($form, 'createName', array($type->text)), 'text', 'name without prefix');
         eq(invoke($form, 'createId', array($type->text)), null, 'no id attribute when $id_prefix is NULL');
@@ -183,35 +209,43 @@ test(
         $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        eq($form->text($type->text), '<input class="form-control" name="text" type="text"/>', 'basic input with no value-attribute');
+        eq($form->input($type->text), '<input class="form-control" name="text" type="text"/>', 'basic input with no value-attribute');
 
         $form->model->input['text'] = 'Hello World';
 
-        eq($form->text($type->text), '<input class="form-control" name="text" type="text" value="Hello World"/>', 'basic input with value-attribute');
+        eq($form->input($type->text), '<input class="form-control" name="text" type="text" value="Hello World"/>', 'basic input with value-attribute');
 
         $type->text->max_length = 50;
 
-        eq($form->text($type->text), '<input class="form-control" maxlength="50" name="text" type="text" value="Hello World"/>', 'input with value and maxlength-attributes');
+        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" type="text" value="Hello World"/>', 'input with value and maxlength-attributes');
 
         $type->text->placeholder = 'hello';
 
-        eq($form->text($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with value, maxlength and placeholder-attributes');
-        eq($form->text($type->text, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
-        eq($form->text($type->text, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="text" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
+        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with value, maxlength and placeholder-attributes');
+        eq($form->input($type->text, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
+        eq($form->input($type->text, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="text" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
 
         $form->model->input['text'] = 'this & that';
 
-        eq($form->text($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
+        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
 
-        eq($form->password($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="password" value="this &amp; that"/>', 'input with type=password');
+        $form->model->input['password'] = 'supersecret';
 
-        eq($form->hidden($type->text), '<input name="text" type="hidden" value="this &amp; that"/>', 'hidden input (no class, placeholder or maxlength, etc.)');
+        eq($form->input($type->password), '<input class="form-control" name="password" type="password" value="supersecret"/>', 'input with type=password');
 
-        eq($form->email($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="email" value="this &amp; that"/>', 'input with type=email (html5)');
+        $form->model->input['hidden'] = 'this & that';
 
-        eq($form->textarea($type->text), '<textarea class="form-control" name="text" placeholder="hello">this &amp; that</textarea>', 'simple textarea with content');
+        eq($form->input($type->hidden), '<input name="hidden" type="hidden" value="this &amp; that"/>', 'hidden input (no class, placeholder or maxlength, etc.)');
 
-        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->token($type->token)) === 1, 'hidden input with CSRF token');
+        $form->model->input['email'] = 'foo@bar.baz';
+
+        eq($form->input($type->email), '<input class="form-control" name="email" type="email" value="foo@bar.baz"/>', 'input with type=email (html5)');
+
+        $form->model->input['textarea'] = 'this & that';
+
+        eq($form->input($type->textarea), '<textarea class="form-control" name="textarea">this &amp; that</textarea>', 'simple textarea with content');
+
+        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->input($type->token)) === 1, 'hidden input with CSRF token');
     }
 );
 
@@ -247,7 +281,7 @@ test(
 
         $type->bool->label = 'I agree';
 
-        eq($form->checkbox($type->bool), '<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>');
+        eq($form->input($type->bool), '<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>');
     }
 );
 
@@ -259,7 +293,7 @@ test(
 
         $type->enum->required = false;
 
-        eq($form->select($type->enum), '<select name="enum"><option value="one">Option One</option><option value="two">Option Two</option></select>');
+        eq($form->input($type->enum), '<select name="enum"><option value="one">Option One</option><option value="two">Option Two</option></select>');
     }
 );
 
@@ -269,13 +303,9 @@ test(
         $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        $form->model->input['text'] = '1975-07-07';
+        $form->model->input['datetime'] = '1975-07-07';
 
-        eq($form->date($type->text), '<input class="form-control" data-ui="datepicker" name="text" readonly="readonly" type="text" value="1975-07-07"/>');
-
-        $form->model->input['text'] = '1975-07-07 12:00:00';
-
-        eq($form->datetime($type->text), '<input class="form-control" data-ui="datetimepicker" name="text" readonly="readonly" type="text" value="1975-07-07 12:00:00"/>');
+        eq($form->input($type->datetime), '<input class="form-control" data-ui="datetimepicker" name="datetime" readonly="readonly" type="text" value="1975-07-07"/>');
     }
 );
 
@@ -501,11 +531,11 @@ test(
 test(
     'validate checked()',
     function () {
-        $field = new BoolField('value');
+        $field = new CheckboxField('value');
 
         testValidator(
             $field,
-            function (InputValidator $v, BoolField $f) {
+            function (InputValidator $v, CheckboxField $f) {
                 $v->checked($f);
             },
             array($field->checked_value, true),
@@ -517,15 +547,14 @@ test(
 test(
     'validate selected()',
     function () {
-        $field = new EnumField('value');
-        $field->options = array(
+        $field = new SelectField('value', array(
             '1' => 'foo',
             '2' => 'bar',
-        );
+        ));
 
         testValidator(
             $field,
-            function (InputValidator $v, EnumField $f) {
+            function (InputValidator $v, SelectField $f) {
                 $v->selected($f);
             },
             array('1', '2', true),

@@ -64,7 +64,7 @@ $validator
 if ($validator->valid) {
     // no errors!
 } else {
-    var_dump($validator->errors); // returns e.g. array("first_name" => "First Name is required")
+    var_dump($validator->model->errors); // returns e.g. array("first_name" => "First Name is required")
 }
 ```
 

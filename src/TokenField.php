@@ -3,20 +3,28 @@
 namespace mindplay\kissform;
 
 /**
- * This class represents a cross-site request forgery (CSRF) token
+ * This class represents a hidden input containing a cross-site request forgery (CSRF) token
  */
-class TokenField extends TextField
+class TokenField extends Field implements RenderableField
 {
-    /** @var string hash algorithm */
+    /**
+     * @var string hash algorithm
+     */
     const HASH_ALGO = 'sha512';
 
-    /** @var string timestamp key */
+    /**
+     * @var string timestamp key
+     */
     const KEY_TIMESTAMP = 'T';
 
-    /** @var string salt key */
+    /**
+     * @var string salt key
+     */
     const KEY_SALT = 'S';
 
-    /** @var string hash key */
+    /**
+     * @var string hash key
+     */
     const KEY_HASH = 'H';
 
     /**
@@ -92,5 +100,29 @@ class TokenField extends TextField
 
         return ($time >= $this->valid_from)
             && ($time <= $this->valid_to);
+    }
+
+    /**
+     * Use the given InputRenderer to render an HTML input for this Field, using
+     * state obtained from the given InputModel, and optionally overriding a given
+     * set of HTML attribute values.
+     *
+     * @param InputRenderer $renderer
+     * @param InputModel    $model
+     * @param string[]      $attr map of HTML attributes
+     *
+     * @return string HTML
+     */
+    public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
+    {
+        return $renderer->buildTag(
+            'input',
+            $attr + array(
+                'type' => 'hidden',
+                'name' => $renderer->createName($this),
+                'value' => $this->createToken(),
+            ),
+            true
+        );
     }
 }

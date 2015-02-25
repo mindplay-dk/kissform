@@ -74,26 +74,6 @@ class InputRenderer
     public $group_attrs = array('class' => 'form-group');
 
     /**
-     * @var string[] map of attributes to apply to date-picker inputs
-     *
-     * @see FormHelper::date()
-     */
-    public $date_attrs = array(
-        'readonly' => 'readonly',
-        'data-ui' => 'datepicker',
-    );
-
-    /**
-     * @var string[] map of attributes to apply to date/time-picker inputs
-     *
-     * @see FormHelper::datetime()
-     */
-    public $datetime_attrs = array(
-        'readonly' => 'readonly',
-        'data-ui' => 'datetimepicker',
-    );
-
-    /**
      * @param InputModel|array|null $model       input model, or (possibly nested) input array (e.g. $_GET or $_POST)
      * @param string                $name_prefix base name for inputs, e.g. 'myform' or 'myform[123]', etc.
      * @param null                  $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
@@ -110,21 +90,11 @@ class InputRenderer
     /**
      * @param Field $field
      *
-     * @return string|array|null value (or NULL, if no value exists in $input)
-     */
-    protected function getInput(Field $field)
-    {
-        return $this->model->getInput($field);
-    }
-
-    /**
-     * @param Field $field
-     *
      * @return string
      *
      * @see Field::$label
      */
-    protected function getLabel(Field $field)
+    public function getLabel(Field $field)
     {
         return $field->label;
     }
@@ -136,7 +106,7 @@ class InputRenderer
      *
      * @see Field::$placeholder
      */
-    protected function getPlaceholder(Field $field)
+    public function getPlaceholder(Field $field)
     {
         return $field->placeholder;
     }
@@ -146,7 +116,7 @@ class InputRenderer
      *
      * @return bool true, if the given Field is required
      */
-    protected function isRequired(Field $field)
+    public function isRequired(Field $field)
     {
         return $field->required;
     }
@@ -156,7 +126,7 @@ class InputRenderer
      *
      * @return string|null computed name-attribute
      */
-    protected function createName(Field $field)
+    public function createName(Field $field)
     {
         return $this->name_prefix
             ? $this->name_prefix . '[' . $field->name . ']'
@@ -168,7 +138,7 @@ class InputRenderer
      *
      * @return string|null computed id-attribute
      */
-    protected function createId(Field $field)
+    public function createId(Field $field)
     {
         return $this->id_prefix
             ? $this->id_prefix . '-' . $field->name
@@ -184,7 +154,7 @@ class InputRenderer
      *
      * @return string
      */
-    protected function buildTag($name, array $attr, $close)
+    public function buildTag($name, array $attr, $close)
     {
         $html = '<' . $name;
 
@@ -199,7 +169,7 @@ class InputRenderer
                 $value = implode(' ', $value); // implode multi-value (e.g. class-names)
             }
 
-            $html .= ' ' . $name . '="' . htmlspecialchars($value, ENT_COMPAT, $this->encoding) . '"';
+            $html .= ' ' . $name . '="' . $this->encode($value) . '"';
         }
 
         $html .= $close
@@ -218,7 +188,7 @@ class InputRenderer
      *
      * @return string
      */
-    protected function buildInput(Field $field, $type, array $attr = array())
+    public function buildInput(Field $field, $type, array $attr = array())
     {
         $attr['class'] = isset($attr['class'])
             ? array_merge(array($this->input_class), (array)$attr['class'])
@@ -227,14 +197,44 @@ class InputRenderer
         return $this->buildTag(
             'input',
             $attr + array(
-                'name' => $this->createName($field),
-                'id' => $this->createId($field),
-                'value' => $this->getInput($field),
-                'type' => $type,
+                'name'        => $this->createName($field),
+                'id'          => $this->createId($field),
+                'value'       => $this->model->getInput($field),
+                'type'        => $type,
                 'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
             ),
             true
         );
+    }
+
+    /**
+     * Encode plain text as HTML
+     *
+     * @param string $text plain text
+     * @param int    $flags encoding flags (optional, see htmlspecialchars)
+     *
+     * @return string escaped HTML
+     *
+     * @see softEncode()
+     */
+    public function encode($text, $flags = ENT_COMPAT)
+    {
+        return htmlspecialchars($text, $flags, $this->encoding, true);
+    }
+
+    /**
+     * Encode plain text as HTML, while attempting to avoid double-encoding
+     *
+     * @param string $text plain text
+     * @param int    $flags encoding flags (optional, see htmlspecialchars)
+     *
+     * @return string escaped HTML
+     *
+     * @see encode()
+     */
+    public function softEncode($text, $flags = ENT_COMPAT)
+    {
+        return htmlspecialchars($text, $flags, $this->encoding, false);
     }
 
     /**
@@ -257,7 +257,7 @@ class InputRenderer
     public function group(Field $field, array $attr = array())
     {
         $classes = isset($this->group_attrs['class'])
-            ? (array) $this->group_attrs['class']
+            ? (array)$this->group_attrs['class']
             : array();
 
         if ($this->required_class !== null && $this->isRequired($field)) {
@@ -289,92 +289,22 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML <input type="text" /> tag
+     * Build an HTML input for any given Field.
      *
-     * @param TextField $field
-     * @param string[]  $attr map of HTML attributes
-     *
-     * @return string
-     */
-    public function text(TextField $field, array $attr = array())
-    {
-        return $this->buildInput($field, 'text', array_merge(array('maxlength' => $field->max_length), $attr));
-    }
-
-    /**
-     * Build an HTML <textarea> tag
-     *
-     * @param TextField $field
-     * @param array     $attr
+     * @param Field $field
+     * @param array $attr
      *
      * @return string
      */
-    public function textarea(TextField $field, array $attr = array())
+    public function input(Field $field, array $attr = array())
     {
-        $name = $field->name;
+        // TODO implement template selection and support for external templates
 
-        $attr += array(
-            'name' => $this->createName($field),
-            'id' => $this->createId($field),
-            'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
-        );
+        if ($field instanceof RenderableField) {
+            return $field->renderInput($this, $this->model, $attr);
+        }
 
-        $attr['class'] = isset($attr['class'])
-            ? array_merge(array($this->input_class), (array)$attr['class'])
-            : $this->input_class;
-
-        return $this->buildTag(
-            'textarea',
-            $attr,
-            false
-        ) . htmlspecialchars($this->getInput($field), ENT_COMPAT, $this->encoding) . '</textarea>';
-    }
-
-    /**
-     * Build an HTML <input type="password" /> tag
-     *
-     * @param TextField $field
-     * @param string[]  $attr map of HTML attributes
-     *
-     * @return string
-     */
-    public function password(TextField $field, array $attr = array())
-    {
-        return $this->buildInput($field, 'password', $attr + array('maxlength' => $field->max_length));
-    }
-
-    /**
-     * Build an HTML <input type="hidden" /> tag
-     *
-     * @param TextField $field
-     * @param string[]  $attr map of HTML attributes
-     *
-     * @return string
-     */
-    public function hidden(TextField $field, array $attr = array())
-    {
-        return $this->buildTag(
-            'input',
-            $attr + array(
-                'type' => 'hidden',
-                'name' => $this->createName($field),
-                'value' => $this->getInput($field),
-            ),
-            true
-        );
-    }
-
-    /**
-     * Build an HTML5 <input type="email" /> tag
-     *
-     * @param TextField $field
-     * @param string[]  $attr map of HTML attributes
-     *
-     * @return string
-     */
-    public function email(TextField $field, array $attr = array())
-    {
-        return $this->buildInput($field, 'email', $attr + array('maxlength' => $field->max_length));
+        throw new RuntimeException("no input-view available for the given Field");
     }
 
     /**
@@ -415,123 +345,5 @@ class InputRenderer
             ),
             false
         ) . htmlspecialchars($label, ENT_COMPAT, $this->encoding, false) . '</label>';
-    }
-
-    /**
-     * Build a labeled checkbox structure, e.g. span.checkbox > label > input
-     *
-     * @param BoolField   $field
-     * @param string|null $label label HTML
-     * @param string      $value value indicating
-     *
-     * @return string
-     *
-     * @see Field::$label
-     */
-    public function checkbox(BoolField $field, $label = null, $value = null)
-    {
-        $checked_value = $value ?: $field->checked_value;
-
-        return
-            '<div class="checkbox"><label>'
-            . $this->buildTag(
-                'input',
-                array(
-                    'name' => $this->createName($field),
-                    'value' => $checked_value,
-                    'checked' => $this->getInput($field) == $checked_value ? 'checked' : null,
-                    'type' => 'checkbox',
-                ),
-                true
-            )
-            . htmlspecialchars($label ?: $this->getLabel($field), ENT_COMPAT, $this->encoding, false)
-            . '</label></div>';
-    }
-
-    /**
-     * Build a <select> tag with a set of <option> tags corresponding to values.
-     *
-     * @param Field|HasOptions $field
-     * @param string[]|null    $options hash where option values => option labels (optional; defaults to $field->options)
-     * @param array            $attr    map of HTML attributes (for the select tag)
-     *
-     * @return string
-     *
-     * @see HasOptions
-     * @see EnumField::$options
-     */
-    public function select(Field $field, $options = null, array $attr = array())
-    {
-        $html = $this->buildTag(
-            'select',
-            $attr + array(
-                'name' => $this->createName($field),
-                'id' => $this->createId($field),
-            ),
-            false
-        );
-
-        $selected = $this->getInput($field);
-
-        if ($options === null && $field instanceof HasOptions) {
-            $options = $field->getOptions();
-        }
-
-        foreach ($options as $value => $label) {
-            $equal = is_numeric($selected)
-                ? $value == $selected // loose comparison works well for NULLs and numbers
-                : $value === $selected; // strict comparison for everything else
-
-            $html .= '<option value="' . htmlspecialchars($value, ENT_COMPAT, $this->encoding) . '"'
-                . ($equal ? ' selected="selected"' : '') . '>'
-                . htmlspecialchars($label, ENT_COMPAT, $this->encoding) . '</option>';
-        }
-
-        return $html . '</select>';
-    }
-
-    /**
-     * Build a text input intended for use with a date picker on the client-side
-     *
-     * @param TextField $field
-     * @param array     $attr map of HTML attributes (for the input element)
-     *
-     * @return string
-     */
-    public function date(TextField $field, array $attr = array())
-    {
-        return $this->text(
-            $field,
-            $attr + $this->date_attrs
-        );
-    }
-
-    /**
-     * Build a text input intended for use with a date/time picker on the client-side
-     *
-     * @param TextField $field
-     * @param array     $attr map of HTML attributes (for the input element)
-     *
-     * @return string
-     */
-    public function datetime(TextField $field, array $attr = array())
-    {
-        return $this->text(
-            $field,
-            $attr + $this->datetime_attrs
-        );
-    }
-
-    /**
-     * Build a hidden input for a cross-site request forgery (CSRF) token
-     *
-     * @param TokenField $field
-     * @param array      $attr map of HTML attributes (for the input element)
-     *
-     * @return string
-     */
-    public function token(TokenField $field, array $attr = array())
-    {
-        return $this->hidden($field, array('value' => $field->createToken()) + $attr);
     }
 }
