@@ -168,7 +168,14 @@ test(
         $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        eq($form->input($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'merges multi-value class attribute');
+        eq($form->input($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'folds multi-valued class attribute');
+        eq($form->input($type->text, array('readonly' => true)), '<input class="form-control" name="text" readonly type="text"/>', 'handles boolean TRUE attribute value');
+        eq($form->input($type->text, array('readonly' => false)), '<input class="form-control" name="text" type="text"/>', 'handles boolean FALSE attribute value');
+        eq($form->input($type->text, array('foo' => null)), '<input class="form-control" name="text" type="text"/>', 'filters NULL-value attributes');
+
+        $form->xhtml = true;
+        eq($form->input($type->text, array('readonly' => true)), '<input class="form-control" name="text" readonly="readonly" type="text"/>', 'renders value-less attributes as valid XHTML');
+        $form->xhtml = false;
 
         eq(invoke($form, 'createName', array($type->text)), 'text', 'name without prefix');
         eq(invoke($form, 'createId', array($type->text)), null, 'no id attribute when $id_prefix is NULL');

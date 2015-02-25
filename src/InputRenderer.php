@@ -16,6 +16,13 @@ class InputRenderer
     public $encoding = 'UTF-8';
 
     /**
+     * @var bool if true, use long form XHTML for value-less attributes (e.g. disabled="disabled")
+     *
+     * @see attrs()
+     */
+    public $xhtml = false;
+
+    /**
      * @var InputModel input model
      */
     public $model;
@@ -156,25 +163,53 @@ class InputRenderer
      */
     public function buildTag($name, array $attr, $close)
     {
-        $html = '<' . $name;
+        return '<' . $name . $this->attrs($attr) . ($close ? '/>' : '>');
+    }
 
-        ksort($attr);
+    /**
+     * Build HTML attributes for use inside an HTML (or XML) tag.
+     *
+     * Includes a leading space, since this is usually used inside a tag, e.g.:
+     *
+     *     <div<?= $form->attrs(array('class' => 'foo')) ?>>...</div>
+     *
+     * Accepts strings, or arrays of strings, as attribute-values - arrays will
+     * be folded uses space as a separator, e.g. useful for the class-attribute.
+     *
+     * Attributes containing NULL, FALSE or an empty array() are ignored.
+     *
+     * Attributes containing TRUE are rendered as value-less attributes.
+     *
+     * @param array $attr map where attribute-name => attribute value(s)
+     * @param bool $sort true, to sort attributes by name; otherwise false (sorting is enabled by default)
+     *
+     * @return string
+     */
+    public function attrs(array $attr, $sort = true)
+    {
+        if ($sort) {
+            ksort($attr);
+        }
+
+        $html = '';
 
         foreach ($attr as $name => $value) {
-            if ($value === null) {
-                continue; // skip NULL attributes
+            if ($value === array() || $value === null || $value === false) {
+                continue; // skip NULL and FALSE attributes and empty arrays
             }
 
             if (is_array($value)) {
-                $value = implode(' ', $value); // implode multi-value (e.g. class-names)
+                $value = implode(' ', $value); // fold multi-value attribute (e.g. class-names)
             }
 
-            $html .= ' ' . $name . '="' . $this->encode($value) . '"';
+            if ($value === true) {
+                $html .= $this->xhtml ?
+                    ' ' . $name . '="' . $name . '"' // e.g. disabled="disabled" (as required for XHTML)
+                    : ' ' . $name; // value-less HTML attribute
+            } else {
+                $html .= ' ' . $name . '="' . $this->encode($value) . '"';
+            }
         }
-
-        $html .= $close
-            ? '/>'
-            : '>';
 
         return $html;
     }
