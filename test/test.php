@@ -310,6 +310,19 @@ test(
 );
 
 test(
+    'builds label/input groups',
+    function () {
+        $form = new InputRenderer(null, 'form');
+
+        $field = new TextField('hello');
+
+        $form->model->input['hello'] = 'World';
+
+        eq($form->inputGroup($field), '<div class="form-group"><input class="form-control" id="form-hello" name="form[hello]" type="text" value="World"/></div>');
+    }
+);
+
+test(
     'validator behavior',
     function () {
         $validator = new InputValidator(array());

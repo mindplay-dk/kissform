@@ -308,10 +308,28 @@ class InputRenderer
     }
 
     /**
+     * Shortcut function, builds an HTML group cotaining a label and input.
+     *
+     * @param Field       $field
+     * @param string|null $label      label text (optional)
+     * @param array       $input_attr map of HTML attributes for the input (optional)
+     * @param array       $group_attr map of HTML attributes for the group (optional)
+     *
+     * @return string
+     */
+    public function inputGroup(Field $field, $label = null, array $input_attr = array(), $group_attr = array())
+    {
+        return $this->group($field, $group_attr)
+            . $this->label($field)
+            . $this->input($field, $input_attr)
+            . $this->endGroup();
+    }
+
+    /**
      * Build an HTML <label for="id" /> tag
      *
      * @param Field       $field
-     * @param string|null $label label text
+     * @param string|null $label label text (optional)
      * @param array       $attr  map of HTML attributes
      *
      * @return string

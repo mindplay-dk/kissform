@@ -97,9 +97,9 @@ $form = new InputRenderer($model, 'form');
 <h1>Make a Donation</h1>
 
 <form method="post">
-    <?= $form->group($t->first_name) . $form->label($t->first_name) . $form->input($t->first_name) . $form->endGroup() ?>
-    <?= $form->group($t->last_name) . $form->label($t->last_name) . $form->input($t->last_name) . $form->endGroup() ?>
-    <?= $form->group($t->amount) . $form->label($t->amount) . $form->input($t->amount) . $form->endGroup() ?>
+    <?= $form->inputGroup($t->first_name) ?>
+    <?= $form->inputGroup($t->last_name) ?>
+    <?= $form->inputGroup($t->amount) ?>
     <?= $form->input($t->i_agree) ?>
     <input class="btn btn-lg btn-primary" type="submit" value="Donate" />
 </form>
