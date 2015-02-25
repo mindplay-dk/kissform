@@ -61,12 +61,12 @@ abstract class Field
      */
     public function setValue(InputModel $model, $value)
     {
-        if (is_string($value)) {
-            $model->setInput($this, $value);
+        if (is_scalar($value)) {
+            $model->setInput($this, (string) $value);
         } elseif ($value === null) {
             $model->setInput($this, null);
+        } else {
+            throw new InvalidArgumentException("string expected");
         }
-
-        throw new InvalidArgumentException("string expected");
     }
 }

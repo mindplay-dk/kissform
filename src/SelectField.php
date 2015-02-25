@@ -54,8 +54,7 @@ class SelectField extends Field implements RenderableField, HasOptions
                 ? $value == $selected // loose comparison works well for NULLs and numbers
                 : $value === $selected; // strict comparison for everything else
 
-            $html .= '<option value="' . $renderer->encode($value) . '"'
-                . ($equal ? ' selected="selected"' : '') . '>'
+            $html .= '<option' . $renderer->attrs(array('value' => $value, 'selected' => $equal)) . '>'
                 . $renderer->encode($label) . '</option>';
         }
 

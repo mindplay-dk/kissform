@@ -27,68 +27,6 @@ if (coverage()) {
     coverage()->start('test');
 }
 
-class SampleDescriptor
-{
-    const OPTION_ONE = 'one';
-    const OPTION_TWO = 'two';
-
-    /** @var TokenField */
-    public $token;
-
-    /** @var SelectField */
-    public $enum;
-
-    /** @var DateTimeField */
-    public $datetime;
-
-    /** @var TextField */
-    public $text;
-
-    /** @var TextArea */
-    public $textarea;
-
-    /** @var PasswordField */
-    public $password;
-
-    /** @var HiddenField */
-    public $hidden;
-
-    /** @var EmailField */
-    public $email;
-
-    /** @var IntField */
-    public $int;
-
-    /** @var CheckboxField */
-    public $bool;
-
-    public function __construct()
-    {
-        $this->token = new TokenField('token', 'abc123');
-
-        $this->enum = new SelectField('enum', array(
-            self::OPTION_ONE => 'Option One',
-            self::OPTION_TWO => 'Option Two',
-        ));
-
-        $this->datetime = new DateTimeField('datetime');
-
-        $this->text = new TextField('text');
-
-        $this->textarea = new TextArea('textarea');
-
-        $this->password = new PasswordField('password');
-
-        $this->hidden = new HiddenField('hidden');
-
-        $this->email = new EmailField('email');
-
-        $this->int = new IntField('int');
-
-        $this->bool = new CheckboxField('bool');
-    }
-}
-
 class ValidationDescriptor
 {
     const CAUSE_PROGRAMMERS = 'p';
@@ -165,154 +103,215 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 test(
     'handles name, id and class-attributes',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
+        $field = new TextField('text');
 
-        eq($form->input($type->text, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'folds multi-valued class attribute');
-        eq($form->input($type->text, array('readonly' => true)), '<input class="form-control" name="text" readonly type="text"/>', 'handles boolean TRUE attribute value');
-        eq($form->input($type->text, array('readonly' => false)), '<input class="form-control" name="text" type="text"/>', 'handles boolean FALSE attribute value');
-        eq($form->input($type->text, array('foo' => null)), '<input class="form-control" name="text" type="text"/>', 'filters NULL-value attributes');
+        eq($form->input($field, array('class' => array('foo', 'bar'))), '<input class="form-control foo bar" name="text" type="text"/>', 'folds multi-valued class attribute');
+        eq($form->input($field, array('readonly' => true)), '<input class="form-control" name="text" readonly type="text"/>', 'handles boolean TRUE attribute value');
+        eq($form->input($field, array('readonly' => false)), '<input class="form-control" name="text" type="text"/>', 'handles boolean FALSE attribute value');
+        eq($form->input($field, array('foo' => null)), '<input class="form-control" name="text" type="text"/>', 'filters NULL-value attributes');
 
         $form->xhtml = true;
-        eq($form->input($type->text, array('readonly' => true)), '<input class="form-control" name="text" readonly="readonly" type="text"/>', 'renders value-less attributes as valid XHTML');
+        eq($form->input($field, array('readonly' => true)), '<input class="form-control" name="text" readonly="readonly" type="text"/>', 'renders value-less attributes as valid XHTML');
         $form->xhtml = false;
 
-        eq(invoke($form, 'createName', array($type->text)), 'text', 'name without prefix');
-        eq(invoke($form, 'createId', array($type->text)), null, 'no id attribute when $id_prefix is NULL');
+        eq(invoke($form, 'createName', array($field)), 'text', 'name without prefix');
+        eq(invoke($form, 'createId', array($field)), null, 'no id attribute when $id_prefix is NULL');
 
         $form->name_prefix = 'form';
         $form->id_prefix = 'form';
 
-        eq(invoke($form, 'createName', array($type->text)), 'form[text]', 'name with prefix');
-        eq(invoke($form, 'createId', array($type->text)), 'form-text', 'id with defined prefix');
+        eq(invoke($form, 'createName', array($field)), 'form[text]', 'name with prefix');
+        eq(invoke($form, 'createId', array($field)), 'form-text', 'id with defined prefix');
     }
 );
 
 test(
     'builds input groups',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
+        $field = new TextField('text');
 
-        eq($form->group($type->text) . $form->endGroup(), '<div class="form-group"></div>');
+        eq($form->group($field) . $form->endGroup(), '<div class="form-group"></div>');
 
         $form->model->errors['text'] = 'some error';
 
-        eq($form->group($type->text), '<div class="form-group has-error">');
+        eq($form->group($field), '<div class="form-group has-error">');
 
-        $type->text->required = true;
+        $field->required = true;
 
-        eq($form->group($type->text), '<div class="form-group is-required has-error">');
+        eq($form->group($field), '<div class="form-group is-required has-error">');
 
-        eq($form->group($type->text, array('class' => 'foo')), '<div class="form-group is-required has-error foo">', 'merge with one class');
+        eq($form->group($field, array('class' => 'foo')), '<div class="form-group is-required has-error foo">', 'merge with one class');
 
-        eq($form->group($type->text, array('class' => array('foo', 'bar'))), '<div class="form-group is-required has-error foo bar">', 'merge with multiple classes');
+        eq($form->group($field, array('class' => array('foo', 'bar'))), '<div class="form-group is-required has-error foo bar">', 'merge with multiple classes');
     }
 );
 
 test(
-    'builds various text input tags',
+    'TextField behavior',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        eq($form->input($type->text), '<input class="form-control" name="text" type="text"/>', 'basic input with no value-attribute');
+        $field = new TextField('value');
 
-        $form->model->input['text'] = 'Hello World';
+        eq($form->input($field), '<input class="form-control" name="value" type="text"/>', 'basic input with no value-attribute');
+    }
+);
 
-        eq($form->input($type->text), '<input class="form-control" name="text" type="text" value="Hello World"/>', 'basic input with value-attribute');
+test(
+    'TextField behavior',
+    function () {
+        $form = new InputRenderer();
+        $model = $form->model;
+        $field = new TextField('value');
 
-        $type->text->max_length = 50;
+        eq($form->input($field), '<input class="form-control" name="value" type="text"/>', 'basic input with no value-attribute');
 
-        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" type="text" value="Hello World"/>', 'input with value and maxlength-attributes');
+        $field->setValue($model, 'Hello World');
 
-        $type->text->placeholder = 'hello';
+        eq($form->input($field), '<input class="form-control" name="value" type="text" value="Hello World"/>', 'basic input with value-attribute');
 
-        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with value, maxlength and placeholder-attributes');
-        eq($form->input($type->text, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="text" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
-        eq($form->input($type->text, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="text" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
+        $field->max_length = 50;
 
-        $form->model->input['text'] = 'this & that';
+        eq($form->input($field), '<input class="form-control" maxlength="50" name="value" type="text" value="Hello World"/>', 'input with value and maxlength-attribute');
 
-        eq($form->input($type->text), '<input class="form-control" maxlength="50" name="text" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
+        $field->placeholder = 'hello';
 
-        $form->model->input['password'] = 'supersecret';
+        eq($form->input($field), '<input class="form-control" maxlength="50" name="value" placeholder="hello" type="text" value="Hello World"/>', 'input with value, maxlength and placeholder-attributes');
+        eq($form->input($field, array('data-foo' => 'bar')), '<input class="form-control" data-foo="bar" maxlength="50" name="value" placeholder="hello" type="text" value="Hello World"/>', 'input with custom data-attribute overridden');
+        eq($form->input($field, array('placeholder' => 'override')), '<input class="form-control" maxlength="50" name="value" placeholder="override" type="text" value="Hello World"/>', 'input with placeholder-attribute overridden');
 
-        eq($form->input($type->password), '<input class="form-control" name="password" type="password" value="supersecret"/>', 'input with type=password');
+        $field->setValue($model, 'this & that');
 
-        $form->model->input['hidden'] = 'this & that';
+        eq($form->input($field), '<input class="form-control" maxlength="50" name="value" placeholder="hello" type="text" value="this &amp; that"/>', 'input with value-attribute escaped as HTML');
+    }
+);
 
-        eq($form->input($type->hidden), '<input name="hidden" type="hidden" value="this &amp; that"/>', 'hidden input (no class, placeholder or maxlength, etc.)');
+test(
+    'TextField behavior',
+    function () {
+        $form = new InputRenderer();
+        $model = $form->model;
+        $field = new PasswordField('value');
 
-        $form->model->input['email'] = 'foo@bar.baz';
+        $field->setValue($model, 'supersecret');
 
-        eq($form->input($type->email), '<input class="form-control" name="email" type="email" value="foo@bar.baz"/>', 'input with type=email (html5)');
+        eq($form->input($field), '<input class="form-control" name="value" type="password" value="supersecret"/>', 'input with type=password');
+    }
+);
 
-        $form->model->input['textarea'] = 'this & that';
+test(
+    'HiddenField behavior',
+    function () {
+        $form = new InputRenderer();
+        $model = $form->model;
+        $field = new HiddenField('value');
 
-        eq($form->input($type->textarea), '<textarea class="form-control" name="textarea">this &amp; that</textarea>', 'simple textarea with content');
+        $field->setValue($model, 'this & that');
 
-        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->input($type->token)) === 1, 'hidden input with CSRF token');
+        eq($form->input($field), '<input name="value" type="hidden" value="this &amp; that"/>', 'hidden input (no class, placeholder or maxlength, etc.)');
+    }
+);
+
+test(
+    'EmailField behavior',
+    function () {
+        $form = new InputRenderer();
+        $model = $form->model;
+        $field = new EmailField('value');
+
+        $field->setValue($model, 'foo@bar.baz');
+
+        eq($form->input($field), '<input class="form-control" name="value" type="email" value="foo@bar.baz"/>', 'input with type=email (html5)');
+    }
+);
+
+test(
+    'TextArea behavior',
+    function () {
+        $form = new InputRenderer();
+        $model = $form->model;
+        $field = new TextArea('value');
+
+        $field->setValue($model, 'this & that');
+
+        eq($form->input($field), '<textarea class="form-control" name="value">this &amp; that</textarea>', 'simple textarea with content');
+    }
+);
+
+test(
+    'TokenField behavior',
+    function () {
+        $form = new InputRenderer();
+        $field = new TokenField('token', 'abc123');
+
+        ok(preg_match('#<input name="token" type="hidden" value="\w+"/>#', $form->input($field)) === 1, 'hidden input with CSRF token');
     }
 );
 
 test(
     'builds label tags',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
+        $field = new TextField('text');
 
         expect(
             'RuntimeException',
             'because no id-attribute can be created',
-            function () use ($form, $type) {
-                $form->label($type->text);
+            function () use ($form, $field) {
+                $form->label($field);
             }
         );
 
         $form = new InputRenderer(null, 'form');
 
-        eq($form->label($type->text), '', 'returns an empty string for unlabeled input');
+        eq($form->label($field), '', 'returns an empty string for unlabeled input');
 
-        $type->text->label = 'Name:';
+        $field->label = 'Name:';
 
-        eq($form->label($type->text), '<label class="control-label" for="form-text">Name:</label>');
+        eq($form->label($field), '<label class="control-label" for="form-text">Name:</label>');
     }
 );
 
 test(
     'builds labeled checkboxes',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer(null, 'form');
+        $field = new CheckboxField('bool');
 
-        $type->bool->label = 'I agree';
+        $field->label = 'I agree';
 
-        eq($form->input($type->bool), '<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>');
+        eq($form->input($field), '<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>');
     }
 );
 
 test(
     'builds select/option tags',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
 
-        $type->enum->required = false;
+        $field = new SelectField('value', array(
+            1 => 'Option One',
+            2 => 'Option Two',
+        ));
 
-        eq($form->input($type->enum), '<select name="enum"><option value="one">Option One</option><option value="two">Option Two</option></select>');
+        eq($form->input($field), '<select name="value"><option value="1">Option One</option><option value="2">Option Two</option></select>');
+
+        $field->setValue($form->model, 1);
+
+        eq($form->input($field), '<select name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
     }
 );
 
 test(
-    'builds date/time text inputs',
+    'DateTimeField behavior',
     function () {
-        $type = new SampleDescriptor();
         $form = new InputRenderer();
+        $field = new DateTimeField('value');
+        $field->setValue($form->model, 173919600);
 
-        $form->model->input['datetime'] = '1975-07-07';
-
-        eq($form->input($type->datetime), '<input class="form-control" data-ui="datetimepicker" name="datetime" readonly type="text" value="1975-07-07"/>');
+        eq($form->input($field), '<input class="form-control" data-ui="datetimepicker" name="value" readonly type="text" value="1975-07-07 00:00:00"/>');
     }
 );
 
