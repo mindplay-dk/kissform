@@ -702,7 +702,6 @@ function testConversion(Field $field, $conversions, $invalid) {
     }
 
     $field->setValue($model, null);
-    eq($model->input['value'], null, "{$type} accepts NULL value");
     eq($field->getValue($model), null, "{$type} handles NULL input");
 
     foreach ($invalid as $value) {

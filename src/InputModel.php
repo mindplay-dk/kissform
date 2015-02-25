@@ -68,7 +68,11 @@ class InputModel
      */
     public function setInput(Field $field, $value)
     {
-        $this->input[$field->name] = $value;
+        if ($value === null || $value === '') {
+            unset($this->input[$field->name]);
+        } else {
+            $this->input[$field->name] = is_array($value) ? $value : (string) $value;
+        }
     }
 
     /**
