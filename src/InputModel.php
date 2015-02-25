@@ -61,6 +61,17 @@ class InputModel
     }
 
     /**
+     * @param Field        $field
+     * @param string|array $value
+     *
+     * @return void
+     */
+    public function setInput(Field $field, $value)
+    {
+        $this->input[$field->name] = $value;
+    }
+
+    /**
      * Set an error message for a given Field, if one is not already set for that
      * Field - we only care about the first error message for each Field, so add
      * error messages in order of importance.

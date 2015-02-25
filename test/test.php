@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\BoolField;
+use mindplay\kissform\InputModel;
 use mindplay\kissform\TokenField;
 use mindplay\kissform\DateTimeField;
 use mindplay\kissform\EnumField;
@@ -630,6 +631,31 @@ test(
         $field->timestamp = $timestamp + $field->valid_to + 1;
 
         ok($field->checkToken($token) === false, 'token invalid when submitted after expiration');
+    }
+);
+
+test(
+    'IntField type conversions',
+    function () {
+        $field = new IntField('value');
+        $model = InputModel::create();
+
+        $field->setValue($model, 12345);
+        eq($model->input['value'], "12345", "converts integer to string");
+
+        $model->input['value'] = "54321";
+        eq($field->getValue($model), 54321, "converts string to integer");
+
+        $field->setValue($model, null);
+        eq($model->input['value'], null, "accepts NULL");
+
+        expect(
+            'InvalidArgumentException',
+            'rejects non-integer value',
+            function () use ($field, $model) {
+                $field->setValue($model, "boom");
+            }
+        );
     }
 );
 
