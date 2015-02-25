@@ -27,50 +27,6 @@ if (coverage()) {
     coverage()->start('test');
 }
 
-class ValidationDescriptor
-{
-    const CAUSE_PROGRAMMERS = 'p';
-    const CAUSE_ARTISTS = 'a';
-
-    /** @var TextField */
-    public $email;
-
-    /** @var TextField */
-    public $confirm_email;
-
-    /** @var IntField */
-    public $donation;
-
-    /** @var TextField */
-    public $password;
-
-    /** @var CheckboxField */
-    public $agree;
-
-    /** @var SelectField */
-    public $cause;
-
-    public function __construct()
-    {
-        $this->email = new TextField('email');
-
-        $this->confirm_email = new TextField('confirm_email');
-
-        $this->donation = new IntField('donation');
-        $this->donation->min_value = 100;
-        $this->donation->max_value = 1000;
-
-        $this->password = new TextField('password');
-
-        $this->agree = new CheckboxField('agree');
-
-        $this->cause = new SelectField('cause', array(
-            self::CAUSE_PROGRAMMERS => 'Starving Programmers',
-            self::CAUSE_ARTISTS => 'Starving Artists',
-        ));
-    }
-}
-
 /**
  * Test a validation function against known valid and invalid values.
  *
@@ -332,8 +288,7 @@ test(
     'validator behavior',
     function () {
         $validator = new InputValidator(array());
-
-        $type = new ValidationDescriptor();
+        $field = new TextField('email');
 
         expect(
             'RuntimeException',
@@ -347,22 +302,22 @@ test(
         eq($validator->valid, true, 'no errors initially (is valid)');
         eq($validator->invalid, false, 'no errors initially (is not invalid)');
 
-        $validator->error($type->email, 'some {token}', array('token' => 'error'));
+        $validator->error($field, 'some {token}', array('token' => 'error'));
 
         eq($validator->valid, false, 'errors are present (is not valid)');
         eq($validator->invalid, true, 'errors are present (is invalid)');
 
         eq($validator->model->errors['email'], 'some error', 'error messages get formatted');
 
-        $validator->error($type->email, 'some other error');
+        $validator->error($field, 'some other error');
 
         eq($validator->model->errors['email'], 'some error', 'first error message is retained');
 
-        $validator->model->clearError($type->email);
+        $validator->model->clearError($field);
 
         eq($validator->valid, true, 'error message cleared');
 
-        $validator->error($type->email, 'some error again');
+        $validator->error($field, 'some error again');
 
         $validator->reset();
 
