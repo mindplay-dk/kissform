@@ -320,6 +320,7 @@ test(
             'RuntimeException',
             'undefined property access',
             function () use ($validator) {
+                /** @noinspection PhpUndefinedFieldInspection that's the whole point! */
                 $validator->foo_bar;
             }
         );
@@ -663,27 +664,70 @@ test(
     }
 );
 
-test(
-    'IntField type conversions',
-    function () {
-        $field = new IntField('value');
-        $model = InputModel::create();
+/**
+ * @param Field   $field
+ * @param mixed[] $conversions map where input string => converted value
+ * @param mixed[] $invalid     list of unacceptable values
+ */
+function testConversion(Field $field, $conversions, $invalid) {
+    $type = get_class($field);
 
-        $field->setValue($model, 12345);
-        eq($model->input['value'], "12345", "converts integer to string");
+    $field->name = 'value';
 
-        $model->input['value'] = "54321";
-        eq($field->getValue($model), 54321, "converts string to integer");
+    $model = InputModel::create();
 
-        $field->setValue($model, null);
-        eq($model->input['value'], null, "accepts NULL");
+    foreach ($conversions as $input => $value) {
+        $input = (string) $input;
+
+        $data = '(' . gettype($value) . ') ' . format($value);
+
+        $field->setValue($model, $value);
+        eq($model->input['value'], $input, "{$type}::setValue() converts {$data} to string");
+
+        $model->input['value'] = $input;
+        eq($field->getValue($model), $value, "{$type}::getValue() converts string to {$data}");
+    }
+
+    $field->setValue($model, null);
+    eq($model->input['value'], null, "{$type} accepts NULL value");
+    eq($field->getValue($model), null, "{$type} handles NULL input");
+
+    foreach ($invalid as $value) {
+        $data = '(' . gettype($value) . ') ' . format($value);
 
         expect(
             'InvalidArgumentException',
-            'rejects non-integer value',
-            function () use ($field, $model) {
-                $field->setValue($model, "boom");
+            "{$type} rejects invalid value: {$data}",
+            function () use ($field, $model, $value) {
+                $field->setValue($model, $value);
             }
+        );
+    }
+}
+
+test(
+    'IntField conversions',
+    function () {
+        testConversion(
+            new IntField('value'),
+            array(
+                "12345" => 12345,
+                "0" => 0,
+            ),
+            array("aaa", array(), 123.456)
+        );
+    }
+);
+
+test(
+    'DateTimeField conversions',
+    function () {
+        testConversion(
+            new DateTimeField('value', 'Europe/Copenhagen'),
+            array(
+                '1975-07-07 00:00:00' => 173919600
+            ),
+            array("aaa", array(), 123.456, "2014-01-01")
         );
     }
 );

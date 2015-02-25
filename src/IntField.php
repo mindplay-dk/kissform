@@ -3,6 +3,7 @@
 namespace mindplay\kissform;
 
 use InvalidArgumentException;
+use UnexpectedValueException;
 
 /**
  * This class provides information about an integer field.
@@ -19,6 +20,8 @@ class IntField extends TextField
      * @param InputModel $model
      *
      * @return int|null
+     *
+     * @throws UnexpectedValueException if unable to parse the input
      */
     public function getValue(InputModel $model)
     {
@@ -28,11 +31,11 @@ class IntField extends TextField
             return null; // no input available
         }
 
-        if (is_int($input) || is_numeric($input)) {
+        if (is_numeric($input)) {
             return (int) $input;
         }
 
-        throw new InvalidArgumentException("unexpected input value: {$input}");
+        throw new UnexpectedValueException("unexpected input: {$input}");
     }
 
     /**
@@ -40,6 +43,8 @@ class IntField extends TextField
      * @param int|null   $value
      *
      * @return void
+     *
+     * @throws InvalidArgumentException if the given value is unacceptable.
      */
     public function setValue(InputModel $model, $value)
     {
@@ -48,7 +53,7 @@ class IntField extends TextField
         } elseif ($value === null) {
             $model->setInput($this, null);
         } else {
-            throw new InvalidArgumentException("unexpected value: {$value}");
+            throw new InvalidArgumentException("unexpected value type: " . gettype($value));
         }
     }
 }

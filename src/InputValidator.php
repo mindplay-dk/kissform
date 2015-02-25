@@ -175,6 +175,8 @@ class InputValidator
     {
         $args = func_get_args();
 
+        // TODO support new field types
+
         if (count($args) > 1) {
             return $this->validate($args);
         }
@@ -638,9 +640,7 @@ class InputValidator
     {
         $input = $this->getInput($field);
 
-        $time = @date_create_from_format($field->format, $input, $field->timezone);
-
-        if (!$time || $time->format($field->format) != $input) {
+        if ($field->parseInput($input) === null) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 

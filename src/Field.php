@@ -2,6 +2,8 @@
 
 namespace mindplay\kissform;
 
+use InvalidArgumentException;
+
 /**
  * Abstract base class for input field metadata types.
  *
@@ -10,6 +12,12 @@ namespace mindplay\kissform;
  * exceptions if invalid input or values is given, because validation is
  * assumed to have taken place in advance. The default implementations
  * handle strings and can be inherited in string-type fields.
+ *
+ * getValue() implementations should throw an {@link UnexpectedValueException}
+ * if the state of the input model is invalid.
+ *
+ * setValue() implementations should throw an {@link InvalidArgumentException}
+ * if the given value is unacceptable.
  */
 abstract class Field
 {
@@ -48,9 +56,17 @@ abstract class Field
      * @param string|null $value
      *
      * @return void
+     *
+     * @throws InvalidArgumentException if the given value is unacceptable.
      */
     public function setValue(InputModel $model, $value)
     {
-        $model->setInput($this, $value);
+        if (is_string($value)) {
+            $model->setInput($this, $value);
+        } elseif ($value === null) {
+            $model->setInput($this, null);
+        }
+
+        throw new InvalidArgumentException("string expected");
     }
 }

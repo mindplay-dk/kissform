@@ -73,7 +73,7 @@ function expect($exception_type, $why, $function)
             return;
         } else {
             $actual_type = get_class($e);
-            ok(false, "$why (expected $exception_type but $actual_type was thrown)");
+            ok(false, "$why (expected $exception_type but $actual_type was thrown)\n" . format($e, true));
             return;
         }
     }
