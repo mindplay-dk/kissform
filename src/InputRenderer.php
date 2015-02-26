@@ -179,8 +179,8 @@ class InputRenderer
     /**
      * Build an open HTML tag; remember to close the tag.
      *
-     * @param string   $name  HTML tag name
-     * @param string[] $attr  map of HTML attributes
+     * @param string   $name HTML tag name
+     * @param string[] $attr map of HTML attributes
      *
      * @return string
      *
@@ -206,7 +206,7 @@ class InputRenderer
      * Attributes containing TRUE are rendered as value-less attributes.
      *
      * @param array $attr map where attribute-name => attribute value(s)
-     * @param bool $sort true, to sort attributes by name; otherwise false (sorting is enabled by default)
+     * @param bool  $sort true, to sort attributes by name; otherwise false (sorting is enabled by default)
      *
      * @return string
      */
@@ -269,7 +269,7 @@ class InputRenderer
     /**
      * Encode plain text as HTML
      *
-     * @param string $text plain text
+     * @param string $text  plain text
      * @param int    $flags encoding flags (optional, see htmlspecialchars)
      *
      * @return string escaped HTML
@@ -284,7 +284,7 @@ class InputRenderer
     /**
      * Encode plain text as HTML, while attempting to avoid double-encoding
      *
-     * @param string $text plain text
+     * @param string $text  plain text
      * @param int    $flags encoding flags (optional, see htmlspecialchars)
      *
      * @return string escaped HTML
@@ -379,9 +379,9 @@ class InputRenderer
     public function inputGroup(Field $field, $label = null, array $input_attr = array(), $group_attr = array())
     {
         return $this->group($field, $group_attr)
-            . $this->label($field)
-            . $this->input($field, $input_attr)
-            . $this->endGroup();
+        . $this->label($field)
+        . $this->input($field, $input_attr)
+        . $this->endGroup();
     }
 
     /**
@@ -411,7 +411,7 @@ class InputRenderer
             $label = $this->getLabel($field);
 
             if ($label === null) {
-				throw new RuntimeException("cannot produce a label when Field::\$label is NULL");
+                throw new RuntimeException("cannot produce a label when Field::\$label is NULL");
             }
         }
 
