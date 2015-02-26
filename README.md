@@ -13,7 +13,35 @@ the input gets validated.
 Model-driven in this library does *not* mean "baked into your business model",
 it means building a dedicated model describing aspects of form input/output.
 
-For example:
+
+## Concepts
+
+The library consists of four key classes with the following responsibilities:
+
+  * **`Field`** classes describe the possible input elements on a form - what
+    they are, what they look like, and how they behave; *not* their state.
+    They also convert native (domain) values to/from form state.
+  
+  * **`InputModel`** contains the state of the form - the values in the input
+    elements and any error-messages. This is a thin wrapper around raw `$_GET`
+    or `$_POST` data - it can be serialized, which means you can stick it in
+    a session variable directly.
+  
+  * **`InputRenderer`** renders form elements (and labels, etc.) using information
+    from `Field` instances, and state (values, errors) from an InputModel instance.
+    
+  * **`InputValidator`** validates input using information from `Field` instances and
+    state (values) from an `InputModel` - it adds any new validation errors to the
+    `InputModel` while performing validations.
+
+Note that `InputRenderer` delegates to `Field` to render the actual input element via
+the `RenderableField` interface - in other words, every `Field` has a built-in default
+"template" for rendering itself.
+
+
+## Usage
+
+A basic form model might look like this:
 
 ```PHP
 class UserForm
@@ -40,7 +68,7 @@ class UserForm
 Use the model to render form inputs:
 
 ```PHP
-$form = new InputRenderer($input, 'user');
+$form = new InputRenderer(@$_POST['user'], 'user');
 
 $t = new UserForm();
 
@@ -88,6 +116,10 @@ That's really basic - of course it does other expected useful things, like:
 
 It deliberately does not implement any of the following:
 
+ * Trivial elements: things like `<form>`, `<fieldset>` and `<legend>` - you don't
+   need code to help you create these simple tags, just type them out; your templates
+   will be easier to read and maintain.
+
  * Form layout: there are too many possible variations, and it's just HTML, which
    is really easy to do in the first place - it's not worthwhile.
    
@@ -111,18 +143,18 @@ second GET request. In other words, form rendering and validation never actually
 occurs during the same request - thus, nu reason to load or run any unused code,
 when these concerns are properly separated.
 
-If you think it sounds rather simplistic, that's because it is - this library does
-very little and gets out of your way whenever you need to do something fancy.
+This library is a tool, not a silver bullet - it does as little as possible, avoids
+inventing complex concepts that can describe every detail, and instead deals primarily
+with the repetitive/error-prone stuff, and gets out of your way when you need it to.
 
 There is very little to learn, and nothing needs to fit into a "box" - there
-is no "architecture" here, just two simple classes, and yes, a little more work
-in some cases, but nothing you can't handle. Now get back to work.
+is little "architecture" here, no "plugins" or "extensions", mostly just simple OOP.
 
 You can/should extend the form renderer with your application-specific input
 types, and more importantly, extend that into model/case-specific renderers -
 it's just one class, so apply your OOP skills for fun and profit!
 
-Why input validation, as opposed to (business) model validation?
+#### Why input validation, as opposed to (business) model validation?
 
  * Because business validation is usually specific to a scenario - you might as
    well do it with simple if-statements in a controller or service, and then
@@ -138,17 +170,10 @@ Why input validation, as opposed to (business) model validation?
  * There are simple scenarios in which a business model isn't even useful, such
    as contact or comment forms, etc.
 
- * Because I said so.
-
 Because you're working with raw query strings/arrays (e.g. `$_POST` or `$_GET`)
 implementing the post/redirect/get pattern is dead simple, as shown in this
 [basic example](https://github.com/mindplay-dk/kissform/blob/master/test/example.php).
 
-Oh, you think your huge, complicated framework of validators and model binders
-and type converters and what-have-you is more cool/advanced/easy/dope/fun?
+## Contributions
 
-I beg to differ.
-
-Shut up and love it.
-
-You're welcome.
+Yes, please - PSR-2 and 4, update and run the test-suite, pull request, thank you!
