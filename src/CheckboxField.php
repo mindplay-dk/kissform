@@ -24,15 +24,14 @@ class CheckboxField extends Field implements RenderableField
     {
         return
             '<div class="checkbox"><label>'
-            . $renderer->buildTag(
+            . $renderer->tag(
                 'input',
                 array(
                     'name' => $renderer->createName($this),
                     'value' => $this->checked_value,
                     'checked' => $model->getInput($this) == $this->checked_value ? 'checked' : null,
                     'type' => 'checkbox',
-                ),
-                true
+                )
             )
             . $renderer->softEncode($this->label ?: $renderer->getLabel($this))
             . '</label></div>';

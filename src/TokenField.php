@@ -115,14 +115,13 @@ class TokenField extends Field implements RenderableField
      */
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
     {
-        return $renderer->buildTag(
+        return $renderer->tag(
             'input',
             $attr + array(
                 'type' => 'hidden',
                 'name' => $renderer->createName($this),
                 'value' => $this->createToken(),
-            ),
-            true
+            )
         );
     }
 }

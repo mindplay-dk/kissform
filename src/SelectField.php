@@ -36,18 +36,11 @@ class SelectField extends Field implements RenderableField, HasOptions
      */
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
     {
-        $html = $renderer->buildTag(
-            'select',
-            $attr + array(
-                'name' => $renderer->createName($this),
-                'id' => $renderer->createId($this),
-            ),
-            false
-        );
-
         $selected = $model->getInput($this);
 
         $options = $this->getOptions();
+
+        $html = '';
 
         foreach ($options as $value => $label) {
             $equal = is_numeric($selected)
@@ -58,6 +51,13 @@ class SelectField extends Field implements RenderableField, HasOptions
                 . $renderer->encode($label) . '</option>';
         }
 
-        return $html . '</select>';
+        return $renderer->tag(
+            'select',
+            $attr + array(
+                'name' => $renderer->createName($this),
+                'id' => $renderer->createId($this),
+            ),
+            $html
+        );
     }
 }

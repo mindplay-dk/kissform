@@ -153,17 +153,42 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML tag
+     * Build an opening and closing HTML tag (or a self-closing tag) - examples:
+     *
+     *     echo $renderer->tag('input', array('type' => 'text'));  => <input type="text"/>
+     *
+     *     echo $renderer->tag('div', array(), 'Foo &amp; Bar');   => <div>Foo &amp; Bar</div>
+     *
+     *     echo $renderer->tag('script', array(), '');             => <script></script>
+     *
+     * @param string      $name HTML tag name
+     * @param string[]    $attr map of HTML attributes
+     * @param string|null $html inner HTML, or NULL to build a self-closing tag
+     *
+     * @return string
+     *
+     * @see openTag()
+     */
+    public function tag($name, array $attr = array(), $html = null)
+    {
+        return $html === null
+            ? '<' . $name . $this->attrs($attr) . '/>'
+            : '<' . $name . $this->attrs($attr) . '>' . $html . '</' . $name . '>';
+    }
+
+    /**
+     * Build an open HTML tag; remember to close the tag.
      *
      * @param string   $name  HTML tag name
      * @param string[] $attr  map of HTML attributes
-     * @param bool     $close true to build a self-closing tag
      *
      * @return string
+     *
+     * @see tag()
      */
-    public function buildTag($name, array $attr, $close)
+    public function openTag($name, array $attr = array())
     {
-        return '<' . $name . $this->attrs($attr) . ($close ? '/>' : '>');
+        return '<' . $name . $this->attrs($attr) . '>';
     }
 
     /**
@@ -194,12 +219,12 @@ class InputRenderer
         $html = '';
 
         foreach ($attr as $name => $value) {
-            if ($value === array() || $value === null || $value === false) {
-                continue; // skip NULL and FALSE attributes and empty arrays
-            }
-
             if (is_array($value)) {
                 $value = implode(' ', $value); // fold multi-value attribute (e.g. class-names)
+            }
+
+            if ($value === '' || $value === null || $value === false) {
+                continue; // skip empty, NULL, FALSE attributes (and empty arrays)
             }
 
             if ($value === true) {
@@ -229,7 +254,7 @@ class InputRenderer
             ? array_merge(array($this->input_class), (array)$attr['class'])
             : $this->input_class;
 
-        return $this->buildTag(
+        return $this->tag(
             'input',
             $attr + array(
                 'name'        => $this->createName($field),
@@ -237,8 +262,7 @@ class InputRenderer
                 'value'       => $this->model->getInput($field),
                 'type'        => $type,
                 'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
-            ),
-            true
+            )
         );
     }
 
@@ -307,7 +331,7 @@ class InputRenderer
             ? array_merge($classes, (array)$attr['class'])
             : $classes;
 
-        return $this->buildTag($this->group_tag, $attr, false);
+        return $this->openTag($this->group_tag, $attr);
     }
 
     /**
@@ -391,12 +415,12 @@ class InputRenderer
             }
         }
 
-        return $this->buildTag(
+        return $this->tag(
             'label',
             $attr + array(
                 'for' => $id,
             ),
-            false
-        ) . htmlspecialchars($label, ENT_COMPAT, $this->encoding, false) . '</label>';
+            htmlspecialchars($label, ENT_COMPAT, $this->encoding, false)
+        );
     }
 }

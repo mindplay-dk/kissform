@@ -32,10 +32,10 @@ class TextArea extends TextField
             ? array_merge(array($renderer->input_class), (array)$attr['class'])
             : $renderer->input_class;
 
-        return $renderer->buildTag(
+        return $renderer->tag(
             'textarea',
             $attr,
-            false
-        ) . $renderer->encode($model->getInput($this)) . '</textarea>';
+            $renderer->encode($model->getInput($this))
+        );
     }
 }

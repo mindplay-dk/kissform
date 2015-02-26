@@ -83,6 +83,26 @@ test(
 );
 
 test(
+    'builds HTML tags and attributes',
+    function () {
+        $renderer = new InputRenderer();
+
+        eq($renderer->tag('input', array('type' => 'text')), '<input type="text"/>', 'self-closing tag');
+
+        eq($renderer->tag('div', array(), 'Foo &amp; Bar'), '<div>Foo &amp; Bar</div>', 'tag with inner HTML');
+
+        eq($renderer->tag('script', array(), ''), '<script></script>', 'empty tag');
+
+        eq($renderer->openTag('div'), '<div>', 'open tag');
+
+        eq($renderer->attrs(array('a' => false, 'b' => null, 'c' => '', 'd' => array())), '', 'filters empty attributes');
+
+        eq($renderer->attrs(array('a' => 'foo', 'b' => 'bar')), ' a="foo" b="bar"', 'adds a leading space');
+
+    }
+);
+
+test(
     'builds input groups',
     function () {
         $form = new InputRenderer();
