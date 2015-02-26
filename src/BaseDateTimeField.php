@@ -2,6 +2,7 @@
 
 namespace mindplay\kissform;
 
+use DateTime;
 use DateTimeZone;
 use InvalidArgumentException;
 use UnexpectedValueException;
@@ -95,8 +96,9 @@ class BaseDateTimeField extends Field implements RenderableField
         if ($value === null) {
             $model->setInput($this, null);
         } elseif (is_int($value)) {
-            $date = date_create(null, $this->timezone);
+            $date = new DateTime();
             $date->setTimestamp($value);
+            $date->setTimezone($this->timezone);
 
             $model->setInput($this, $date->format($this->format));
         } else {
