@@ -18,6 +18,11 @@ class CheckboxField extends Field implements RenderableField
     public $label;
 
     /**
+     * @var string|null wrapper class-name (or NULL to disable the wrapper div; defaults to "checkbox")
+     */
+    public $wrapper_class = 'checkbox';
+
+    /**
      * {@inheritdoc}
      */
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
@@ -35,8 +40,8 @@ class CheckboxField extends Field implements RenderableField
         );
 
         return
-            '<div class="checkbox">'
+            ($this->wrapper_class ? '<div class="' . $this->wrapper_class . '">' : '')
             . ($label ? $renderer->tag('label', array(), $input . $renderer->softEncode($label)) : $input)
-            . '</div>';
+            . ($this->wrapper_class ? '</div>' : '');
     }
 }

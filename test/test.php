@@ -267,6 +267,10 @@ test(
         $field->label = 'I agree';
 
         eq($form->input($field), '<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>');
+
+        $field->wrapper_class = null;
+
+        eq($form->input($field), '<label><input name="form[bool]" type="checkbox" value="1"/>I agree</label>');
     }
 );
 
