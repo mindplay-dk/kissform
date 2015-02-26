@@ -264,7 +264,7 @@ test(
     'DateTimeField behavior',
     function () {
         $form = new InputRenderer();
-        $field = new DateTimeField('value');
+        $field = new DateTimeField('value', 'Europe/Copenhagen');
         $field->setValue($form->model, 173919600);
 
         eq($form->input($field), '<input class="form-control" data-ui="datetimepicker" name="value" readonly type="text" value="1975-07-07 00:00:00"/>');
@@ -557,8 +557,7 @@ test(
 test(
     'validate datetime()',
     function () {
-        $field = new DateTimeField('value');
-        $field->setTimeZone('UTC');
+        $field = new DateTimeField('value', 'UTC');
         $field->format = 'Y-m-d';
 
         testValidator(

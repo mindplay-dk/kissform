@@ -110,7 +110,7 @@ class InputValidator
      *
      * @return string label
      *
-     * @see name()
+     * @see title()
      * @see Field::$label
      */
     protected function getTitle(Field $field)
@@ -152,19 +152,14 @@ class InputValidator
     /**
      * Automatically perform basic validations on the given Fields, based
      * on the types and properties of the given Fields - this includes
-     * checking for required input, {@link BoolField} must be checked,
-     * {@link HasOptions} fields must have a valid selection, {@link IntField}
-     * must be within {@link IntField::$min_value} and {@link IntField::$max_value}
-     * and {@link TextField} must have a length between {@link TextField::$min_length}
-     * and {@link TextField::$max_length}.
+     * checking for required input, data-types and value range, where
+     * applicable.
      *
      * @param Field|Field[] ...$field
      *
      * @return $this
      *
      * @see Field::$required
-     * @see BoolField
-     * @see EnumField
      * @see HasOptions
      * @see IntField::$min_value
      * @see IntField::$max_value
@@ -174,8 +169,6 @@ class InputValidator
     public function validate($field)
     {
         $args = func_get_args();
-
-        // TODO support new field types
 
         if (count($args) > 1) {
             return $this->validate($args);
@@ -193,10 +186,6 @@ class InputValidator
             $this->required($field);
         }
 
-        if ($field instanceof CheckboxField) {
-            $this->checked($field);
-        }
-
         if ($field instanceof HasOptions) {
             $this->selected($field);
         }
@@ -211,9 +200,7 @@ class InputValidator
             } else if ($field->max_value !== null) {
                 $this->maxValue($field);
             }
-        }
-
-        if ($field instanceof TextField) {
+        } elseif ($field instanceof TextField) {
             if ($field->min_length !== null) {
                 if ($field->max_length !== null) {
                     $this->length($field);
@@ -223,6 +210,10 @@ class InputValidator
             } else if ($field->max_length !== null) {
                 $this->maxLength($field);
             }
+        } elseif ($field instanceof DateTimeField) {
+            $this->datetime($field);
+        } elseif ($field instanceof EmailField) {
+            $this->email($field);
         }
 
         return $this;
