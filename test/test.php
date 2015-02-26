@@ -116,11 +116,11 @@ test(
 
         $field->required = true;
 
-        eq($form->group($field), '<div class="form-group is-required has-error">');
+        eq($form->group($field), '<div class="form-group required has-error">');
 
-        eq($form->group($field, array('class' => 'foo')), '<div class="form-group is-required has-error foo">', 'merge with one class');
+        eq($form->group($field, array('class' => 'foo')), '<div class="form-group required has-error foo">', 'merge with one class');
 
-        eq($form->group($field, array('class' => array('foo', 'bar'))), '<div class="form-group is-required has-error foo bar">', 'merge with multiple classes');
+        eq($form->group($field, array('class' => array('foo', 'bar'))), '<div class="form-group required has-error foo bar">', 'merge with multiple classes');
     }
 );
 
@@ -242,7 +242,13 @@ test(
 
         $form = new InputRenderer(null, 'form');
 
-        eq($form->label($field), '', 'returns an empty string for unlabeled input');
+        expect(
+            'RuntimeException',
+            'because no label can be created',
+            function () use ($form, $field) {
+                $form->label($field);
+            }
+        );
 
         $field->label = 'Name:';
 
@@ -255,6 +261,8 @@ test(
     function () {
         $form = new InputRenderer(null, 'form');
         $field = new CheckboxField('bool');
+
+        eq($form->input($field), '<div class="checkbox"><input name="form[bool]" type="checkbox" value="1"/></div>');
 
         $field->label = 'I agree';
 
@@ -297,10 +305,11 @@ test(
         $form = new InputRenderer(null, 'form');
 
         $field = new TextField('hello');
+        $field->label = 'Hello!';
 
         $form->model->input['hello'] = 'World';
 
-        eq($form->inputGroup($field), '<div class="form-group"><input class="form-control" id="form-hello" name="form[hello]" type="text" value="World"/></div>');
+        eq($form->inputGroup($field), '<div class="form-group"><label class="control-label" for="form-hello">Hello!</label><input class="form-control" id="form-hello" name="form[hello]" type="text" value="World"/></div>');
     }
 );
 

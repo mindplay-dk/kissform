@@ -22,18 +22,21 @@ class CheckboxField extends Field implements RenderableField
      */
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
     {
-        return
-            '<div class="checkbox"><label>'
-            . $renderer->tag(
-                'input',
-                array(
-                    'name' => $renderer->createName($this),
-                    'value' => $this->checked_value,
-                    'checked' => $model->getInput($this) == $this->checked_value ? 'checked' : null,
-                    'type' => 'checkbox',
-                )
+        $label = $this->label ?: $renderer->getLabel($this);
+
+        $input = $renderer->tag(
+            'input',
+            array(
+                'name'    => $renderer->createName($this),
+                'value'   => $this->checked_value,
+                'checked' => $model->getInput($this) == $this->checked_value ? 'checked' : null,
+                'type'    => 'checkbox',
             )
-            . $renderer->softEncode($this->label ?: $renderer->getLabel($this))
-            . '</label></div>';
+        );
+
+        return
+            '<div class="checkbox">'
+            . ($label ? $renderer->tag('label', array(), $input . $renderer->softEncode($label)) : $input)
+            . '</div>';
     }
 }
