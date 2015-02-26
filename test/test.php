@@ -658,7 +658,7 @@ function testConversion(Field $field, $conversions, $invalid) {
         eq($model->input['value'], $input, "{$type}::setValue() converts {$data} to string");
 
         $model->input['value'] = $input;
-        eq($field->getValue($model), $value, "{$type}::getValue() converts string to {$data}");
+        eq($field->getValue($model), $value, "{$type}::getValue() converts string \"{$input}\" to {$data}");
     }
 
     $field->setValue($model, null);
@@ -703,6 +703,29 @@ test(
         );
     }
 );
+
+/** TODO remove this: documents a bug in HHVM */
+
+echo "\nDocumenting a bug in HHVM:\n\n";
+
+$date = date_create(null, new DateTimeZone('Europe/Copenhagen'));
+$date->setTimestamp(173919600);
+echo "expected: 1975-07-07 00:00:00\n  result: " . $date->format('Y-m-d H:i:s') . "\n\n";
+
+// attempting work-around: (1)
+
+$date = date_create(null);
+$date->setTimestamp(173919600);
+$date->setTimezone(new DateTimeZone('Europe/Copenhagen'));
+echo "expected: 1975-07-07 00:00:00\n  result: " . $date->format('Y-m-d H:i:s') . "\n\n";
+
+// attempting work-around: (2)
+
+$date = date_create_from_format('U', 173919600);
+$date->setTimezone(new DateTimeZone('Europe/Copenhagen'));
+echo "expected: 1975-07-07 00:00:00\n  result: " . $date->format('Y-m-d H:i:s') . "\n\n";
+
+/** ------8<------8<------ */
 
 if (coverage()) {
     coverage()->stop();
