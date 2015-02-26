@@ -36,7 +36,8 @@ The library consists of four key classes with the following responsibilities:
 
 Note that `InputRenderer` delegates to `Field` to render the actual input element via
 the `RenderableField` interface - in other words, every `Field` has a built-in default
-"template" for rendering itself.
+"template" for rendering itself. (This makes sense, because parsing/generating input
+state/values is mutually dependent on the precise HTML input(s) being used.)
 
 
 ## Usage
