@@ -56,7 +56,7 @@ class InputRenderer
      *
      * @see group()
      */
-    public $required_class = 'is-required';
+    public $required_class = 'required';
 
     /**
      * @var string CSS class-name added to fields with error state
@@ -411,7 +411,7 @@ class InputRenderer
             $label = $this->getLabel($field);
 
             if ($label === null) {
-                return ''; // no label available
+				throw new RuntimeException("cannot produce a label when Field::\$label is NULL");
             }
         }
 
