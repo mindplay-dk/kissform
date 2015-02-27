@@ -39,6 +39,17 @@ the `RenderableField` interface - in other words, every `Field` has a built-in d
 "template" for rendering itself. (This makes sense, because parsing/generating input
 state/values is mutually dependent on the precise HTML input(s) being used.)
 
+This design is based on the idea that there are no overlapping concerns between
+form rendering and input validation - one is about output, the other is about input,
+it merely so happens that the same information can be used to configure the components
+that handle these concerns.
+
+Assuming you use [PRG](http://en.wikipedia.org/wiki/Post/Redirect/Get),
+when the form is rendered initially, there is no user input, thus nothing to validate;
+if the form fails validation, the validation occurs during the POST request, and the
+actual form rendering occurs during the second GET request. In other words, form
+rendering and validation never actually occur during the same request.
+
 
 ## Usage
 
@@ -99,7 +110,10 @@ if ($validator->valid) {
 
 Note that only one error is recorded per field - the first one encountered.
 
-That's really basic - of course it does other expected useful things, like:
+
+## Other Features
+
+This library has other expected and useful features, including:
 
  * Comes preconfigured with Bootstrap class-names as defaults, because, why not.
 
@@ -133,17 +147,6 @@ It deliberately does not implement any of the following:
    solve problems like a thrifty programmer. Extend the renderer and validator
    as needed for your business/project/module/scenario/model, etc.
 
-Many form frameworks are based on "widgets" that can render inputs, perform
-validation, etc. - this approach breaks [SRP](http://en.wikipedia.org/wiki/Single_responsibility_principle)
-because there are *no* overlapping concerns between form rendering and input validation.
-Assuming you use [PRG](http://en.wikipedia.org/wiki/Post/Redirect/Get)
-like a good little soldier: when the form is rendered initially, there is no user
-input, thus nothing to validate; when the form fails validation, the validation
-occurs during the first POST request, and the form rendering occurs during the
-second GET request. In other words, form rendering and validation never actually
-occurs during the same request - thus, nu reason to load or run any unused code,
-when these concerns are properly separated.
-
 This library is a tool, not a silver bullet - it does as little as possible, avoids
 inventing complex concepts that can describe every detail, and instead deals primarily
 with the repetitive/error-prone stuff, and gets out of your way when you need it to.
@@ -174,6 +177,7 @@ it's just one class, so apply your OOP skills for fun and profit!
 Because you're working with raw query strings/arrays (e.g. `$_POST` or `$_GET`)
 implementing the post/redirect/get pattern is dead simple, as shown in this
 [basic example](https://github.com/mindplay-dk/kissform/blob/master/test/example.php).
+
 
 ## Contributions
 
