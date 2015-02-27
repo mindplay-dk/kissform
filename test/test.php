@@ -108,6 +108,8 @@ test(
         $form = new InputRenderer();
         $field = new TextField('text');
 
+        eq($form->group() . $form->endGroup(), '<div class="form-group"></div>');
+
         eq($form->group($field) . $form->endGroup(), '<div class="form-group"></div>');
 
         $form->model->errors['text'] = 'some error';

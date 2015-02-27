@@ -302,8 +302,8 @@ class InputRenderer
      *
      * Call {@link endGroup()} to create the matching closing tag.
      *
-     * @param Field    $field
-     * @param string[] $attr map of HTML attributes (optional)
+     * @param Field|null $field field (or NULL)
+     * @param string[]   $attr map of HTML attributes (optional)
      *
      * @return string
      *
@@ -313,8 +313,12 @@ class InputRenderer
      * @see $error_class
      * @see endGroup()
      */
-    public function group(Field $field, array $attr = array())
+    public function group(Field $field = null, array $attr = array())
     {
+        if ($field === null) {
+            return $this->openTag($this->group_tag, $attr + $this->group_attrs);
+        }
+
         $classes = isset($this->group_attrs['class'])
             ? (array)$this->group_attrs['class']
             : array();
