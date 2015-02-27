@@ -103,6 +103,21 @@ test(
 );
 
 test(
+    'merges attributes',
+    function () {
+        $renderer = new InputRenderer();
+
+        eq($renderer->merge(array('a' => '1'), array('a' => '2')), array('a' => '2'));
+
+        eq($renderer->merge(array('a' => '1'), array('b' => '2')), array('a' => '1', 'b' => '2'));
+
+        eq($renderer->merge(array('a' => '1', 'class' => 'foo')), array('a' => '1', 'class' => 'foo'));
+
+        eq($renderer->merge(array('class' => 'foo'), array('class' => 'bar')), array('class' => array('foo', 'bar')));
+    }
+);
+
+test(
     'builds input groups',
     function () {
         $form = new InputRenderer();
@@ -120,9 +135,9 @@ test(
 
         eq($form->group($field), '<div class="form-group required has-error">');
 
-        eq($form->group($field, array('class' => 'foo')), '<div class="form-group required has-error foo">', 'merge with one class');
+        eq($form->group($field, array('class' => 'foo')), '<div class="form-group foo required has-error">', 'merge with one class');
 
-        eq($form->group($field, array('class' => array('foo', 'bar'))), '<div class="form-group required has-error foo bar">', 'merge with multiple classes');
+        eq($form->group($field, array('class' => array('foo', 'bar'))), '<div class="form-group foo bar required has-error">', 'merge with multiple classes');
     }
 );
 

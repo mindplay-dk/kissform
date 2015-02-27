@@ -315,13 +315,57 @@ class InputRenderer
      */
     public function group(Field $field = null, array $attr = array())
     {
-        if ($field === null) {
-            return $this->openTag($this->group_tag, $attr + $this->group_attrs);
+        return $this->openTag(
+            $this->group_tag,
+            $field === null
+                ? $this->merge($this->group_attrs, $attr)
+                : $this->state($field, $this->merge($this->group_attrs, $attr))
+        );
+    }
+
+    /**
+     * Merge any number of attribute maps, with the latter overwriting the first, and
+     * with special handling for the class-attribute.
+     *
+     * @param array ...$attr
+     *
+     * @return array
+     */
+    public function merge()
+    {
+        $maps = func_get_args();
+
+        $result = array();
+
+        foreach ($maps as $map) {
+            if (isset($map['class'])) {
+                if (isset($result['class'])) {
+                    $map['class'] = array_merge((array) $result['class'], (array) $map['class']);
+                }
+            }
+
+            $result = array_merge($result, $map);
         }
 
-        $classes = isset($this->group_attrs['class'])
-            ? (array)$this->group_attrs['class']
-            : array();
+        return $result;
+    }
+
+    /**
+     * Conditionally create (or add) CSS class-names for Field status, e.g.
+     * {@see $required_class} for {@see Field::$required} and {@see $error_class}
+     * if the {@see $model} contains an error.
+     *
+     * @param Field $field
+     * @param array $attr map of HTML attributes
+     *
+     * @return array map of HTML attributes (with additonial classes)
+     *
+     * @see $required_class
+     * @see $error_class
+     */
+    public function state(Field $field, array $attr = array())
+    {
+        $classes = array();
 
         if ($this->required_class !== null && $this->isRequired($field)) {
             $classes[] = $this->required_class;
@@ -331,11 +375,7 @@ class InputRenderer
             $classes[] = $this->error_class;
         }
 
-        $attr['class'] = isset($attr['class'])
-            ? array_merge($classes, (array)$attr['class'])
-            : $classes;
-
-        return $this->openTag($this->group_tag, $attr);
+        return $this->merge($attr, array('class' => $classes));
     }
 
     /**
