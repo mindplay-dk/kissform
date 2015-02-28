@@ -475,7 +475,7 @@ test(
         testValidator(
             new IntField('value'),
             function (InputValidator $v, IntField $f) {
-                $v->numeric($f);
+                $v->float($f);
             },
             array('0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1'),
             array('', null, '-', 'foo')

@@ -38,7 +38,7 @@ class InputValidator
         'required'  => '{field} is required',
         'confirm'   => 'The input must match {field}',
         'int'       => '{field} must be a whole number',
-        'numeric'   => '{field} must be a number',
+        'float'     => '{field} must be a number',
         'email'     => '{field} must be a valid e-mail address',
         'length'    => '{field} must be between {min} and {max} characters long',
         'minLength' => '{field} must be at least {min} characters long',
@@ -333,7 +333,7 @@ class InputValidator
      */
     public function int(Field $field, $error = null)
     {
-        if (preg_match('/^\-?\d+$/', $this->getInput($field)) !== 1) {
+        if (filter_var($this->getInput($field), FILTER_VALIDATE_INT) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -348,11 +348,9 @@ class InputValidator
      *
      * @return $this
      */
-    public function numeric(Field $field, $error = null)
+    public function float(Field $field, $error = null)
     {
-        $value = $this->getInput($field);
-
-        if (!(is_numeric($value) || preg_match('/^\d+\.\d+$/', $value) === 1)) {
+        if (filter_var($this->getInput($field), FILTER_VALIDATE_FLOAT) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -462,7 +460,7 @@ class InputValidator
      */
     public function range(Field $field, $min = null, $max = null, $error = null)
     {
-        $this->numeric($field);
+        $this->float($field);
 
         if ($this->model->hasError($field)) {
             return $this;
@@ -497,7 +495,7 @@ class InputValidator
      */
     public function maxValue(Field $field, $max = null, $error = null)
     {
-        $this->numeric($field);
+        $this->float($field);
 
         if ($this->model->hasError($field)) {
             return $this;
@@ -531,7 +529,7 @@ class InputValidator
      */
     public function minValue(Field $field, $min = null, $error = null)
     {
-        $this->numeric($field);
+        $this->float($field);
 
         if ($this->model->hasError($field)) {
             return $this;
