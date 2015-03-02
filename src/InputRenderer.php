@@ -28,7 +28,7 @@ class InputRenderer
     public $model;
 
     /**
-     * @var string[] form element name-attribute prefixes
+     * @var string|string[] form element name-attribute prefixes
      */
     public $name_prefix;
 
@@ -88,11 +88,11 @@ class InputRenderer
     public function __construct($model = null, $name_prefix = null, $id_prefix = null)
     {
         $this->model = InputModel::create($model);
-        $this->name_prefix = (array) $name_prefix;
+        $this->name_prefix = $name_prefix;
         $this->id_prefix = $id_prefix === null
             ? ($name_prefix === null
                 ? null
-                : implode('-', $this->name_prefix))
+                : implode('-', (array) $this->name_prefix))
             : $id_prefix;
     }
 
@@ -153,6 +153,41 @@ class InputRenderer
         return $this->id_prefix
             ? $this->id_prefix . '-' . $field->name
             : null;
+    }
+
+    /**
+     * Visit a given Field - temporarily swaps out {@see $model}, {@see $name_prefix}
+     * and {@see $id_prefix} and merges any changes made to the model while calling
+     * the given function.
+     *
+     * @param Field    $field
+     * @param callable $func function (InputModel $model): void
+     *
+     * @return void
+     */
+    public function visit(Field $field, callable $func)
+    {
+        $model = $this->model;
+        $name_prefix = $this->name_prefix;
+        $id_prefix = $this->id_prefix;
+
+        $this->model = InputModel::create($model->getInput($field), @$model->errors[$field->name]);
+        $this->name_prefix = array_merge((array) $this->name_prefix, array($field->name));
+        $this->id_prefix = $this->id_prefix
+            ? $this->id_prefix . '-' . $field->name
+            : null;
+
+        $func($this->model);
+
+        $model->setInput($field, $this->model->input);
+
+        if ($this->model->hasErrors()) {
+            $model->errors[$field->name] = $this->model->errors;
+        }
+
+        $this->model = $model;
+        $this->name_prefix = $name_prefix;
+        $this->id_prefix = $id_prefix;
     }
 
     /**
