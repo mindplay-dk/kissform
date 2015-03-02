@@ -28,7 +28,7 @@ class InputRenderer
     public $model;
 
     /**
-     * @var string|string[] form element name-attribute prefix (or array of prefixes)
+     * @var string[] form element name-attribute prefixes
      */
     public $name_prefix;
 
@@ -88,11 +88,11 @@ class InputRenderer
     public function __construct($model = null, $name_prefix = null, $id_prefix = null)
     {
         $this->model = InputModel::create($model);
-        $this->name_prefix = $name_prefix;
+        $this->name_prefix = (array) $name_prefix;
         $this->id_prefix = $id_prefix === null
             ? ($name_prefix === null
                 ? null
-                : implode('-', (array)$name_prefix))
+                : implode('-', $this->name_prefix))
             : $id_prefix;
     }
 

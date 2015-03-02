@@ -108,7 +108,7 @@ test(
         eq($form->createName($field), 'text', 'name without prefix');
         eq($form->createId($field), null, 'no id attribute when $id_prefix is NULL');
 
-        $form->name_prefix = 'form';
+        $form->name_prefix = array('form');
         $form->id_prefix = 'form';
 
         eq($form->createName($field), 'form[text]', 'name with prefix');
