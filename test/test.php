@@ -360,6 +360,33 @@ test(
 );
 
 test(
+    'DateSelectField behavior',
+    function () {
+        $form = new InputRenderer();
+        $field = new DateSelectField('value', 'Europe/Copenhagen');
+
+        $field->setValue($form->model, 173919600);
+
+        eq(
+            $form->model->getInput($field),
+            array(
+                DateSelectField::KEY_YEAR  => '1975',
+                DateSelectField::KEY_MONTH => '7',
+                DateSelectField::KEY_DAY   => '7',
+            ),
+            'generates expected input from given value'
+        );
+
+        eq($field->getValue($form->model), 173919600, 'recreates date timestamp from input');
+
+        $field->year_min = 1974;
+        $field->year_max = 1976;
+
+        # TODO eq($form->input($field), '');
+    }
+);
+
+test(
     'builds label/input groups',
     function () {
         $form = new InputRenderer(null, 'form');
