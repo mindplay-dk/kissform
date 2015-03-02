@@ -87,27 +87,6 @@ test(
         $model->clearErrors();
         eq($model->hasErrors(), false, 'model has no errors after clearing all');
         eq($model->hasError($field), false, 'field has no error after clearing all');
-
-        $submodel = $model->getChild($field);
-
-        eq($model->input[$field->name], array(), 'auto-creates array in parent model');
-        eq($submodel, $model->getChild($field), 'caches and returns the same submodel instance');
-
-        $subfield = new TextField('hello');
-        $subfield->setValue($submodel, 'world');
-
-        eq($submodel->input[$subfield->name], 'world', 'applies value to submodel');
-        eq($model->input[$field->name], array('hello' => 'world'), 'applies values to parent model');
-        eq($subfield->getValue($submodel), 'world', 'can get subfield value');
-        eq($field->getValue($model), array('hello' => 'world'), 'can get subfield model as array');
-
-        $serial = serialize($model);
-        unset($model, $submodel);
-        $model = unserialize($serial);
-
-        eq($model->input[$field->name], array('hello' => 'world'), 'model content survives serialization');
-        $submodel = $model->getChild($field);
-        eq($subfield->getValue($submodel), 'world', 'submodel survives serialization');
     }
 );
 

@@ -2,8 +2,6 @@
 
 namespace mindplay\kissform;
 
-use UnexpectedValueException;
-
 /**
  * This model represents form state: input values and errors.
  */
@@ -20,11 +18,6 @@ class InputModel
     public $errors;
 
     /**
-     * @var self[] map where niput name => input model instance
-     */
-    private $cache = array();
-
-    /**
      * @param array    $input  map where field name => input value(s)
      * @param string[] $errors map where field name => error message
      */
@@ -32,14 +25,6 @@ class InputModel
     {
         $this->input = $input;
         $this->errors = $errors;
-    }
-
-    /**
-     * @ignore
-     */
-    public function __sleep()
-    {
-        return array('input', 'errors');
     }
 
     /**
@@ -85,45 +70,9 @@ class InputModel
     {
         if ($value === null || $value === '') {
             unset($this->input[$field->name]);
-
-            if (isset($this->cache[$field->name])) {
-                // update existing cached sub-model:
-                unset($this->cache[$field->name]);
-            }
         } else {
-            if (is_array($value)) {
-                $this->input[$field->name] = $value;
-
-                if (isset($this->cache[$field->name])) {
-                    // update existing cached sub-model:
-                    $this->cache[$field->name]->input = & $this->input[$field->name];
-                }
-            } else {
-                $this->input[$field->name] = is_array($value) ? $value : (string) $value;
-            }
+            $this->input[$field->name] = is_array($value) ? $value : (string) $value;
         }
-    }
-
-    /**
-     * @param Field $field
-     *
-     * @return InputModel
-     */
-    public function getChild(Field $field)
-    {
-        if (! isset($this->cache[$field->name])) {
-            if (! isset($this->input[$field->name])) {
-                // auto-create array for an empty sub-model:
-                $this->input[$field->name] = array();
-            } else if (!is_array($this->input[$field->name])) {
-                throw new UnexpectedValueException('unexpected ' . gettype($this->input[$field->name]) . ' - expected array');
-            }
-
-            $this->cache[$field->name] = InputModel::create();
-            $this->cache[$field->name]->input = & $this->input[$field->name];
-        }
-
-        return $this->cache[$field->name];
     }
 
     /**
