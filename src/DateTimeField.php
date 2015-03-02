@@ -14,7 +14,7 @@ use DateTimeZone;
  *
  * {@link http://php.net/manual/en/datetime.createfromformat.php#refsect1-datetime.createfromformat-parameters}
  */
-class DateTimeField extends BaseDateTimeField
+class DateTimeField extends DateTimeStringField
 {
     /**
      * @param string $name field name

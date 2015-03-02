@@ -8,9 +8,9 @@ use InvalidArgumentException;
 use UnexpectedValueException;
 
 /**
- * This is an abstract Field type for date/time-fields
+ * Base date/time field-type for string-based input.
  */
-class BaseDateTimeField extends Field implements RenderableField
+class DateTimeStringField extends TimeZoneAwareField implements RenderableField
 {
     /**
      * @var string input date/time format string
@@ -18,30 +18,9 @@ class BaseDateTimeField extends Field implements RenderableField
     public $format;
 
     /**
-     * @var DateTimeZone input time-zone
-     */
-    public $timezone;
-
-    /**
      * @var string[] map of HTML attributes to apply
      */
     public $attrs = array('readonly' => true);
-
-    /**
-     * @param DateTimeZone|string|null $timezone input time-zone (or NULL to use the current default timezone)
-     */
-    public function setTimeZone($timezone)
-    {
-        if ($timezone === null) {
-            $timezone = new DateTimeZone(date_default_timezone_get());
-        } else if (is_string($timezone)) {
-            $timezone = new DateTimeZone($timezone);
-        } else if (! $timezone instanceof DateTimeZone) {
-            throw new InvalidArgumentException('DateTimeZone or string expected, ' . gettype($timezone) . ' given');
-        }
-
-        $this->timezone = $timezone;
-    }
 
     /**
      * Attempts to parse the given input; returns NULL on failure.

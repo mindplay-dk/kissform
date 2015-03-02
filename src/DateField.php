@@ -4,7 +4,7 @@ namespace mindplay\kissform;
 
 use DateTimeZone;
 
-class DateField extends BaseDateTimeField
+class DateField extends DateTimeStringField
 {
     /**
      * @param string $name field name
