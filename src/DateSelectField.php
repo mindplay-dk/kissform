@@ -186,7 +186,7 @@ class DateSelectField extends TimeZoneAwareField implements RenderableField
         $months = range(1, 12);
         $days = range(1, 31);
 
-        $date_model = InputModel::create($model->getInput($this));
+        $date_model = $model->getChild($this);
 
         $year = new SelectField(self::KEY_YEAR, array_combine($years, $years));
         $month = new SelectField(self::KEY_MONTH, array_combine($months, $this->months));
