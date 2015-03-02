@@ -122,6 +122,34 @@ test(
 );
 
 test(
+    'Can visit nested inputs',
+    function () {
+        $renderer = new InputRenderer(null, 'form', 'form');
+        $parent = new TextField('parent');
+        $child = new TextField('child');
+
+        $renderer->visit($parent, function (InputModel $model) {});
+
+        eq($renderer->model->input, array(), 'input remains empty after visiting');
+        eq($renderer->model->errors, array(), 'errors remain empty after visiting');
+
+        $renderer->visit($parent, function (InputModel $model) use ($renderer, $child) {
+            $child->setValue($model, 'test');
+            $model->setError($child, 'whoops');
+
+            eq($renderer->name_prefix, array('form', 'parent'), 'name prefix added');
+            eq($renderer->id_prefix, 'form-parent', 'name prefix added');
+        });
+
+        eq($renderer->name_prefix, 'form', 'name prefix restored');
+        eq($renderer->id_prefix, 'form', 'id prefix restored');
+
+        eq($renderer->model->input, array('parent' => array('child' => 'test')), 'child value merged to parent');
+        eq($renderer->model->errors, array('parent' => array('child' => 'whoops')), 'child errors merged to parent');
+    }
+);
+
+test(
     'builds HTML tags and attributes',
     function () {
         $renderer = new InputRenderer();
@@ -382,7 +410,32 @@ test(
         $field->year_min = 1974;
         $field->year_max = 1976;
 
-        # TODO eq($form->input($field), '');
+        $rendered = $form->input($field);
+
+        $expected = array(
+            '<select class="year" name="value[year]">',
+            '<option value="1974">1974</option>',
+            '<option selected value="1975">1975</option>',
+            '<option value="1976">1976</option>',
+            '</select>',
+            '<select class="month" name="value[month]">',
+            '<option value="1">January</option>',
+            '<option selected value="7">July</option>',
+            '<option value="12">December</option>',
+            '</select>',
+            '<select class="day" name="value[day]">',
+            '<option value="1">1</option>',
+            '<option selected value="7">7</option>',
+            '<option value="31">31</option>',
+            '</select>',
+        );
+
+        $last_offset = 0;
+        foreach ($expected as $part) {
+            $offset = strpos($rendered, $part, $last_offset);
+            ok($offset !== false && $offset >= $last_offset, 'contains part', $part);
+            $last_offset = $offset;
+        }
     }
 );
 
