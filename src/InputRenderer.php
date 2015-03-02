@@ -28,7 +28,7 @@ class InputRenderer
     public $model;
 
     /**
-     * @var string form element name-attribute prefix
+     * @var string|string[] form element name-attribute prefix (or array of prefixes)
      */
     public $name_prefix;
 
@@ -82,7 +82,7 @@ class InputRenderer
 
     /**
      * @param InputModel|array|null $model       input model, or (possibly nested) input array (e.g. $_GET or $_POST)
-     * @param string                $name_prefix base name for inputs, e.g. 'myform' or 'myform[123]', etc.
+     * @param string|string[]       $name_prefix base name(s) for inputs, e.g. 'myform' or array('myform', '123') etc.
      * @param null                  $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
     public function __construct($model = null, $name_prefix = null, $id_prefix = null)
@@ -90,7 +90,9 @@ class InputRenderer
         $this->model = InputModel::create($model);
         $this->name_prefix = $name_prefix;
         $this->id_prefix = $id_prefix === null
-            ? preg_replace('/\W/', '', $this->name_prefix)
+            ? ($name_prefix === null
+                ? null
+                : implode('-', (array)$name_prefix))
             : $id_prefix;
     }
 
@@ -135,9 +137,10 @@ class InputRenderer
      */
     public function createName(Field $field)
     {
-        return $this->name_prefix
-            ? $this->name_prefix . '[' . $field->name . ']'
-            : $field->name;
+        $names = (array) $this->name_prefix;
+        $names[] = $field->name;
+
+        return $names[0] . (count($names) > 1 ? '[' . implode('][', array_slice($names, 1)) . ']' : '');
     }
 
     /**

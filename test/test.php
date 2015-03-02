@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\CheckboxField;
+use mindplay\kissform\DateSelectField;
 use mindplay\kissform\EmailField;
 use mindplay\kissform\HiddenField;
 use mindplay\kissform\InputModel;
@@ -57,6 +58,39 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 }
 
 test(
+    'InputModel behavior',
+    function () {
+        $model = InputModel::create();
+        eq($model->input, array(), 'defaults to empty input');
+        eq($model->errors, array(), 'defaults to empty error list');
+
+        $field = new TextField('test');
+        $model->setInput($field, 'foo');
+        eq($model->input, array('test' => 'foo'), 'can set input value');
+        eq($model->getInput($field), 'foo', 'can get input value');
+
+        $model->setInput($field, null);
+        eq($model->input, array(), 'removes NULL values');
+
+        eq($model->hasErrors(), false, 'model has no errors initially');
+        eq($model->hasError($field), false, 'field has no error initially');
+        $model->setError($field, 'bang');
+        eq($model->errors, array('test' => 'bang'));
+        eq($model->hasError($field), true, 'field has error');
+        eq($model->hasErrors(), true, 'model has errors');
+
+        $model->clearError($field);
+        eq($model->hasErrors(), false, 'model has no errors after clearing');
+        eq($model->hasError($field), false, 'field has no error after clearing');
+
+        $model->setError($field, 'bang');
+        $model->clearErrors();
+        eq($model->hasErrors(), false, 'model has no errors after clearing all');
+        eq($model->hasError($field), false, 'field has no error after clearing all');
+    }
+);
+
+test(
     'handles name, id and class-attributes',
     function () {
         $form = new InputRenderer();
@@ -71,14 +105,19 @@ test(
         eq($form->input($field, array('readonly' => true)), '<input class="form-control" name="text" readonly="readonly" type="text"/>', 'renders value-less attributes as valid XHTML');
         $form->xhtml = false;
 
-        eq(invoke($form, 'createName', array($field)), 'text', 'name without prefix');
-        eq(invoke($form, 'createId', array($field)), null, 'no id attribute when $id_prefix is NULL');
+        eq($form->createName($field), 'text', 'name without prefix');
+        eq($form->createId($field), null, 'no id attribute when $id_prefix is NULL');
 
         $form->name_prefix = 'form';
         $form->id_prefix = 'form';
 
-        eq(invoke($form, 'createName', array($field)), 'form[text]', 'name with prefix');
-        eq(invoke($form, 'createId', array($field)), 'form-text', 'id with defined prefix');
+        eq($form->createName($field), 'form[text]', 'name with prefix');
+        eq($form->createId($field), 'form-text', 'id with defined prefix');
+
+        $form->name_prefix = array('form', 'subform');
+        $form->id_prefix = 'form-subform';
+        eq($form->createName($field), 'form[subform][text]', 'renderer name with double prefix');
+        eq($form->createId($field), 'form-subform-text', 'id for renderer name with double prefix');
     }
 );
 
