@@ -401,11 +401,11 @@ test(
             2 => 'Option Two',
         ));
 
-        eq($form->input($field), '<select name="value"><option value="1">Option One</option><option value="2">Option Two</option></select>');
+        eq($form->input($field), '<select class="form-control" name="value"><option value="1">Option One</option><option value="2">Option Two</option></select>');
 
         $field->setValue($form->model, 1);
 
-        eq($form->input($field), '<select name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
+        eq($form->input($field), '<select class="form-control" name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
     }
 );
 
@@ -446,17 +446,17 @@ test(
         $rendered = $form->input($field);
 
         $expected = array(
-            '<select class="year" name="value[year]">',
+            '<select class="form-control year" name="value[year]">',
             '<option value="1974">1974</option>',
             '<option selected value="1975">1975</option>',
             '<option value="1976">1976</option>',
             '</select>',
-            '<select class="month" name="value[month]">',
+            '<select class="form-control month" name="value[month]">',
             '<option value="1">January</option>',
             '<option selected value="7">July</option>',
             '<option value="12">December</option>',
             '</select>',
-            '<select class="day" name="value[day]">',
+            '<select class="form-control day" name="value[day]">',
             '<option value="1">1</option>',
             '<option selected value="7">7</option>',
             '<option value="31">31</option>',

@@ -53,9 +53,13 @@ class SelectField extends Field implements RenderableField, HasOptions
 
         return $renderer->tag(
             'select',
-            $attr + array(
-                'name' => $renderer->createName($this),
-                'id' => $renderer->createId($this),
+            $renderer->merge(
+                array(
+                    'name' => $renderer->createName($this),
+                    'id' => $renderer->createId($this),
+                    'class' => $renderer->input_class,
+                ),
+                $attr
             ),
             $html
         );
