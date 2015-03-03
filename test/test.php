@@ -446,20 +446,20 @@ test(
         $rendered = $form->input($field);
 
         $expected = array(
-            '<select class="form-control year" name="value[year]">',
-            '<option value="1974">1974</option>',
-            '<option selected value="1975">1975</option>',
-            '<option value="1976">1976</option>',
+            '<select class="form-control day" name="value[day]">',
+            '<option value="1">1</option>',
+            '<option selected value="7">7</option>',
+            '<option value="31">31</option>',
             '</select>',
             '<select class="form-control month" name="value[month]">',
             '<option value="1">January</option>',
             '<option selected value="7">July</option>',
             '<option value="12">December</option>',
             '</select>',
-            '<select class="form-control day" name="value[day]">',
-            '<option value="1">1</option>',
-            '<option selected value="7">7</option>',
-            '<option value="31">31</option>',
+            '<select class="form-control year" name="value[year]">',
+            '<option value="1974">1974</option>',
+            '<option selected value="1975">1975</option>',
+            '<option value="1976">1976</option>',
             '</select>',
         );
 

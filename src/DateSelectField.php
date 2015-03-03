@@ -46,6 +46,15 @@ class DateSelectField extends TimeZoneAwareField implements RenderableField
     );
 
     /**
+     * @var string[] field order, e.g. KEY_* constants in the desired input order
+     */
+    public $order = array(
+        self::KEY_DAY,
+        self::KEY_MONTH,
+        self::KEY_YEAR,
+    );
+
+    /**
      * @var string CSS class-name for the year drop-down
      */
     public $year_class = self::KEY_YEAR;
@@ -195,9 +204,24 @@ class DateSelectField extends TimeZoneAwareField implements RenderableField
         $field = $this;
 
         $renderer->visit($this, function (InputModel $model) use ($renderer, $field, $year, $month, $day, &$html) {
-            $html = $renderer->input($year, array('class' => $field->year_class))
-                . $renderer->input($month, array('class' => $field->month_class))
-                . $renderer->input($day, array('class' => $field->day_class));
+            foreach ($field->order as $key) {
+                switch ($key) {
+                    case DateSelectField::KEY_YEAR:
+                        $html .= $renderer->input($year, array('class' => $field->year_class));
+                        break;
+
+                    case DateSelectField::KEY_MONTH:
+                        $html .= $renderer->input($month, array('class' => $field->month_class));
+                        break;
+
+                    case DateSelectField::KEY_DAY:
+                        $html .= $renderer->input($day, array('class' => $field->day_class));
+                        break;
+
+                    default:
+                        throw new UnexpectedValueException("expected 'year', 'month' or 'day' - got: {$key}");
+                }
+            }
         });
 
         return $html;
