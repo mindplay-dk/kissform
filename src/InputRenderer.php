@@ -468,10 +468,39 @@ class InputRenderer
      */
     public function inputGroup(Field $field, $label = null, array $input_attr = array(), $group_attr = array())
     {
-        return $this->group($field, $group_attr)
-        . $this->label($field)
-        . $this->input($field, $input_attr)
-        . $this->endGroup();
+        return
+            $this->group($field, $group_attr)
+            . $this->label($field)
+            . $this->input($field, $input_attr)
+            . $this->endGroup();
+    }
+
+    /**
+     * Builds an HTML div with state-classes, containing a rendered input.
+     *
+     * @param Field $field
+     * @param array $input_attr attributes for the generated input
+     * @param array $div_attr   attributes for the wrapper div
+     *
+     * @return string HTML
+     */
+    public function inputDiv(Field $field, array $input_attr = array(), $div_attr = array())
+    {
+        return $this->div($field, $this->input($field, $input_attr), $div_attr);
+    }
+
+    /**
+     * Builds an HTML div with state-classes, containing the given HTML.
+     *
+     * @param Field  $field
+     * @param string $html inner HTML for the generated div
+     * @param array  $attr additional attributes for the div
+     *
+     * @return string HTML
+     */
+    public function div(Field $field, $html, array $attr = array())
+    {
+        return $this->tag('div', $this->merge($this->state($field), $attr), $html);
     }
 
     /**

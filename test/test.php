@@ -194,6 +194,30 @@ test(
 );
 
 test(
+    'builds div containers for inputs',
+    function () {
+        $form = new InputRenderer();
+        $field = new TextField('text');
+
+        eq($form->div($field, 'foo &amp; bar', array('data-foo' => 'bar')),
+            '<div data-foo="bar">foo &amp; bar</div>');
+
+        eq($form->inputDiv($field, array('data-input' => 'foo'), array('data-div' => 'bar')),
+            '<div data-div="bar"><input class="form-control" data-input="foo" name="text" type="text"/></div>');
+
+        $field->required = true;
+
+        $form->model->setError($field, 'whoops');
+
+        eq($form->div($field, 'foo &amp; bar', array('data-foo' => 'bar')),
+            '<div class="required has-error" data-foo="bar">foo &amp; bar</div>');
+
+        eq($form->inputDiv($field, array('class' => 'foo'), array('class' => array('foo', 'bar'))),
+            '<div class="required has-error foo bar"><input class="form-control foo" name="text" type="text"/></div>');
+    }
+);
+
+test(
     'builds input groups',
     function () {
         $form = new InputRenderer();
