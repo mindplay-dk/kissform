@@ -146,6 +146,15 @@ test(
 
         eq($renderer->model->input, array('parent' => array('child' => 'test')), 'child value merged to parent');
         eq($renderer->model->errors, array('parent' => array('child' => 'whoops')), 'child errors merged to parent');
+
+        $renderer->model = InputModel::create(array(123 => array('child' => 'hello')));
+
+        $renderer->visit(123, function (InputModel $model) use ($child) {
+            eq($model->getInput($child), 'hello', 'can get child value from parent using scalar key');
+            $child->setValue($model, 'world');
+        });
+
+        eq($renderer->model->input, array(123 => array('child' => 'world')), 'child value merged to parent with scalar key');
     }
 );
 

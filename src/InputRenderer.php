@@ -160,29 +160,37 @@ class InputRenderer
      * and {@see $id_prefix} and merges any changes made to the model while calling
      * the given function.
      *
-     * @param Field    $field
-     * @param callable $func function (InputModel $model): void
+     * @param Field|int|string $field Field instance, or an integer index, or string key
+     * @param callable         $func function (InputModel $model): mixed
      *
-     * @return void
+     * @return mixed
      */
-    public function visit(Field $field, callable $func)
+    public function visit($field, $func)
     {
         $model = $this->model;
         $name_prefix = $this->name_prefix;
         $id_prefix = $this->id_prefix;
 
-        $this->model = InputModel::create($model->getInput($field), @$model->errors[$field->name]);
-        $this->name_prefix = array_merge((array) $this->name_prefix, array($field->name));
+        $key = $field instanceof Field
+            ? $field->name
+            : (string) $field;
+
+        $this->model = InputModel::create(@$model->input[$key], @$model->errors[$key]);
+        $this->name_prefix = array_merge((array) $this->name_prefix, array($key));
         $this->id_prefix = $this->id_prefix
-            ? $this->id_prefix . '-' . $field->name
+            ? $this->id_prefix . '-' . $key
             : null;
 
-        $func($this->model);
+        call_user_func($func, $this->model);
 
-        $model->setInput($field, $this->model->input);
+        if ($this->model->input !== array()) {
+            $model->input[$key] = $this->model->input;
+        } else {
+            unset($model->input[$key]);
+        }
 
         if ($this->model->hasErrors()) {
-            $model->errors[$field->name] = $this->model->errors;
+            $model->errors[$key] = $this->model->errors;
         }
 
         $this->model = $model;
