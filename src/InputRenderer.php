@@ -296,20 +296,19 @@ class InputRenderer
      */
     public function buildInput(Field $field, $type, array $attr = array())
     {
-        $attr['class'] = isset($attr['class'])
-            ? array_merge(array($this->input_class), (array)$attr['class'])
-            : $this->input_class;
-
-        return $this->tag(
-            'input',
-            $attr + array(
+        $attr = $this->merge(
+            array(
                 'name'        => $this->createName($field),
                 'id'          => $this->createId($field),
+                'class'       => $this->input_class,
                 'value'       => $this->model->getInput($field),
                 'type'        => $type,
                 'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
-            )
+            ),
+            $attr
         );
+
+        return $this->tag('input', $attr);
     }
 
     /**
@@ -516,9 +515,7 @@ class InputRenderer
      */
     public function label(Field $field, $label = null, array $attr = array())
     {
-        $attr['class'] = isset($attr['class'])
-            ? array_merge(array($this->label_class), (array)$attr['class'])
-            : $this->label_class;
+        $attr = $this->merge(array('class' => $this->label_class), $attr);
 
         $id = $this->createId($field);
 
@@ -539,7 +536,7 @@ class InputRenderer
             $attr + array(
                 'for' => $id,
             ),
-            htmlspecialchars($label, ENT_COMPAT, $this->encoding, false)
+            $this->softEncode($label)
         );
     }
 }
