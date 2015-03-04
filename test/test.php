@@ -4,8 +4,10 @@ use mindplay\kissform\CheckboxField;
 use mindplay\kissform\DateSelectField;
 use mindplay\kissform\EmailField;
 use mindplay\kissform\HiddenField;
+use mindplay\kissform\InlineRadioGroup;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\PasswordField;
+use mindplay\kissform\RadioGroup;
 use mindplay\kissform\TextArea;
 use mindplay\kissform\TokenField;
 use mindplay\kissform\DateTimeField;
@@ -406,6 +408,39 @@ test(
         $field->setValue($form->model, 1);
 
         eq($form->input($field), '<select class="form-control" name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
+    }
+);
+
+test(
+    'builds radio groups',
+    function () {
+        $form = new InputRenderer();
+
+        $field = new RadioGroup('value', array(
+            '1' => 'Option One',
+            '2' => 'Option Two',
+        ));
+
+        eq($form->input($field), '<div class="radio"><label><input type="radio" value="1"/> Option One</label></div><div class="radio"><label><input type="radio" value="2"/> Option Two</label></div>');
+
+        $field->setValue($form->model, 1);
+
+        eq($form->input($field), '<div class="radio"><label><input checked type="radio" value="1"/> Option One</label></div><div class="radio"><label><input type="radio" value="2"/> Option Two</label></div>');
+
+        // inline variation:
+
+        $form = new InputRenderer();
+
+        $field = new InlineRadioGroup('value', array(
+            '1' => 'Option One',
+            '2' => 'Option Two',
+        ));
+
+        eq($form->input($field), '<label class="radio-inline"><input type="radio" value="1"/> Option One</label><label class="radio-inline"><input type="radio" value="2"/> Option Two</label>');
+
+        $field->setValue($form->model, 1);
+
+        eq($form->input($field), '<label class="radio-inline"><input checked type="radio" value="1"/> Option One</label><label class="radio-inline"><input type="radio" value="2"/> Option Two</label>');
     }
 );
 
