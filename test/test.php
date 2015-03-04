@@ -412,6 +412,10 @@ test(
         $field->setValue($form->model, 1);
 
         eq($form->input($field), '<select class="form-control" name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
+
+        $field->disabled = 'Please select...';
+
+        eq($form->input($field), '<select class="form-control" name="value"><option disabled>Please select...</option><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
     }
 );
 
@@ -461,6 +465,31 @@ test(
     }
 );
 
+/**
+ * Test for partial substrings which must appear (in order) in a given string
+ *
+ * @param string   $string
+ * @param string[] $expected
+ */
+function testParts($string, array $expected) {
+    $last_offset = 0;
+    $all_ok = true;
+
+    foreach ($expected as $part) {
+        $offset = strpos($string, $part, $last_offset);
+
+        $ok = ($offset !== false) && ($offset >= $last_offset);
+
+        $all_ok = $all_ok && $ok;
+
+        ok($ok, 'contains part', $part);
+
+        $last_offset = $offset;
+    }
+
+    ok($all_ok, 'contains all expected parts in order', $string);
+}
+
 test(
     'DateSelectField behavior',
     function () {
@@ -484,32 +513,43 @@ test(
         $field->year_min = 1974;
         $field->year_max = 1976;
 
-        $rendered = $form->input($field);
+        $field->required = true;
 
-        $expected = array(
-            '<select class="form-control day" name="value[day]">',
-            '<option value="1">1</option>',
-            '<option selected value="7">7</option>',
-            '<option value="31">31</option>',
-            '</select>',
-            '<select class="form-control month" name="value[month]">',
-            '<option value="1">January</option>',
-            '<option selected value="7">July</option>',
-            '<option value="12">December</option>',
-            '</select>',
-            '<select class="form-control year" name="value[year]">',
-            '<option value="1974">1974</option>',
-            '<option selected value="1975">1975</option>',
-            '<option value="1976">1976</option>',
-            '</select>',
+        testParts(
+            $form->input($field),
+            array(
+                '<select class="form-control day" name="value[day]">',
+                '<option value="1">1</option>',
+                '<option selected value="7">7</option>',
+                '<option value="31">31</option>',
+                '</select>',
+                '<select class="form-control month" name="value[month]">',
+                '<option value="1">January</option>',
+                '<option selected value="7">July</option>',
+                '<option value="12">December</option>',
+                '</select>',
+                '<select class="form-control year" name="value[year]">',
+                '<option value="1974">1974</option>',
+                '<option selected value="1975">1975</option>',
+                '<option value="1976">1976</option>',
+                '</select>',
+            )
         );
 
-        $last_offset = 0;
-        foreach ($expected as $part) {
-            $offset = strpos($rendered, $part, $last_offset);
-            ok($offset !== false && $offset >= $last_offset, 'contains part', $part);
-            $last_offset = $offset;
-        }
+        $field->required = false;
+
+        testParts(
+            $form->input($field),
+            array(
+                '<select class="form-control day" name="value[day]">',
+                '<option disabled>Day</option>',
+                '<select class="form-control month" name="value[month]">',
+                '<option disabled>Month</option>',
+                '<select class="form-control year" name="value[year]">',
+                '<option disabled>Year</option>',
+            )
+        );
+
     }
 );
 

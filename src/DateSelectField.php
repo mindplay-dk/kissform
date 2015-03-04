@@ -46,6 +46,21 @@ class DateSelectField extends TimeZoneAwareField implements RenderableField
     );
 
     /**
+     * @var string label for the year drop-down
+     */
+    public $label_year = 'Year';
+
+    /**
+     * @var string label for the year drop-down
+     */
+    public $label_month = 'Month';
+
+    /**
+     * @var string label for the year drop-down
+     */
+    public $label_day = 'Day';
+
+    /**
      * @var string[] field order, e.g. KEY_* constants in the desired input order
      */
     public $order = array(
@@ -198,6 +213,12 @@ class DateSelectField extends TimeZoneAwareField implements RenderableField
         $year = new SelectField(self::KEY_YEAR, array_combine($years, $years));
         $month = new SelectField(self::KEY_MONTH, array_combine($months, $this->months));
         $day = new SelectField(self::KEY_DAY, array_combine($days, $days));
+
+        if (! $this->required) {
+            $year->disabled = $this->label_year;
+            $month->disabled = $this->label_month;
+            $day->disabled = $this->label_day;
+        }
 
         $html = '';
 

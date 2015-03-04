@@ -13,6 +13,11 @@ class SelectField extends Field implements RenderableField, HasOptions
     protected $options;
 
     /**
+     * @var string label of disabled first option (often directions or a description)
+     */
+    public $disabled;
+
+    /**
      * @param string   $name    field name
      * @param string[] $options map where option values map to option labels
      */
@@ -41,6 +46,11 @@ class SelectField extends Field implements RenderableField, HasOptions
         $options = $this->getOptions();
 
         $html = '';
+
+        if ($this->disabled !== null) {
+            $html .= '<option' . $renderer->attrs(array('disabled' => true)) . '>'
+                . $renderer->encode($this->disabled) . '</option>';
+        }
 
         foreach ($options as $value => $label) {
             $equal = is_numeric($selected)
