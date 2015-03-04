@@ -13,8 +13,8 @@ class SelectField extends Field implements RenderableField, HasOptions
     protected $options;
 
     /**
-     * @param string $name field name
-     * @param array  $options
+     * @param string   $name    field name
+     * @param string[] $options map where option values map to option labels
      */
     public function __construct($name, array $options)
     {
