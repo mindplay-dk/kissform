@@ -369,9 +369,13 @@ test(
             }
         );
 
-        $field->label = 'Name:';
+        $field->label = 'Name';
+
+        $form->label_suffix = ':';
 
         eq($form->label($field), '<label class="control-label" for="form-text">Name:</label>');
+
+        eq($form->label($field, "Nombre"), '<label class="control-label" for="form-text">Nombre:</label>');
     }
 );
 

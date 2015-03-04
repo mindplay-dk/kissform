@@ -52,6 +52,13 @@ class InputRenderer
     public $label_class = 'control-label';
 
     /**
+     * @var string suffix to append to all labels (e.g. ":")
+     *
+     * @see label()
+     */
+    public $label_suffix = '';
+
+    /**
      * @var string CSS class-name added to required fields
      *
      * @see group()
@@ -536,7 +543,7 @@ class InputRenderer
             $attr + array(
                 'for' => $id,
             ),
-            $this->softEncode($label)
+            $this->softEncode($label . $this->label_suffix)
         );
     }
 }
