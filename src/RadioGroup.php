@@ -70,8 +70,14 @@ class RadioGroup extends Field implements RenderableField, HasOptions
             $tag = $renderer->tag(
                 'input',
                 $renderer->merge(
-                    array('type' => 'radio', 'value' => $value, 'checked' => $checked),
-                    $this->input_attr
+                    array(
+                        'type' => 'radio',
+                        'name' => $renderer->createName($this),
+                        'value' => $value,
+                        'checked' => $checked
+                    ),
+                    $this->input_attr,
+                    $attr
                 )
             );
 

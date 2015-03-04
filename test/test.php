@@ -425,11 +425,11 @@ test(
             '2' => 'Option Two',
         ));
 
-        eq($form->input($field), '<div class="radio"><label><input type="radio" value="1"/> Option One</label></div><div class="radio"><label><input type="radio" value="2"/> Option Two</label></div>');
+        eq($form->input($field), '<div class="radio"><label><input name="value" type="radio" value="1"/> Option One</label></div><div class="radio"><label><input name="value" type="radio" value="2"/> Option Two</label></div>');
 
         $field->setValue($form->model, 1);
 
-        eq($form->input($field), '<div class="radio"><label><input checked type="radio" value="1"/> Option One</label></div><div class="radio"><label><input type="radio" value="2"/> Option Two</label></div>');
+        eq($form->input($field), '<div class="radio"><label><input checked name="value" type="radio" value="1"/> Option One</label></div><div class="radio"><label><input name="value" type="radio" value="2"/> Option Two</label></div>');
 
         // inline variation:
 
@@ -440,11 +440,13 @@ test(
             '2' => 'Option Two',
         ));
 
-        eq($form->input($field), '<label class="radio-inline"><input type="radio" value="1"/> Option One</label><label class="radio-inline"><input type="radio" value="2"/> Option Two</label>');
+        eq($form->input($field), '<label class="radio-inline"><input name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input name="value" type="radio" value="2"/> Option Two</label>');
 
         $field->setValue($form->model, 1);
 
-        eq($form->input($field), '<label class="radio-inline"><input checked type="radio" value="1"/> Option One</label><label class="radio-inline"><input type="radio" value="2"/> Option Two</label>');
+        eq($form->input($field), '<label class="radio-inline"><input checked name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input name="value" type="radio" value="2"/> Option Two</label>');
+
+        eq($form->input($field, array('class' => 'foo')), '<label class="radio-inline"><input checked class="foo" name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input class="foo" name="value" type="radio" value="2"/> Option Two</label>');
     }
 );
 
