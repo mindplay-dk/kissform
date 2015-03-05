@@ -48,7 +48,7 @@ class SelectField extends Field implements RenderableField, HasOptions
         $html = '';
 
         if ($this->disabled !== null) {
-            $html .= '<option' . $renderer->attrs(array('disabled' => true)) . '>'
+            $html .= '<option' . $renderer->attrs(array('disabled' => true, 'selected' => ($selected == ''))) . '>'
                 . $renderer->encode($this->disabled) . '</option>';
         }
 

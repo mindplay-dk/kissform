@@ -413,9 +413,13 @@ test(
 
         eq($form->input($field), '<select class="form-control" name="value"><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
 
-        $field->disabled = 'Please select...';
+        $field->disabled = 'Please select';
 
-        eq($form->input($field), '<select class="form-control" name="value"><option disabled>Please select...</option><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
+        eq($form->input($field), '<select class="form-control" name="value"><option disabled>Please select</option><option selected value="1">Option One</option><option value="2">Option Two</option></select>');
+
+        $field->setValue($form->model, null);
+
+        eq($form->input($field), '<select class="form-control" name="value"><option disabled selected>Please select</option><option value="1">Option One</option><option value="2">Option Two</option></select>');
     }
 );
 
@@ -547,6 +551,20 @@ test(
                 '<option disabled>Month</option>',
                 '<select class="form-control year" name="value[year]">',
                 '<option disabled>Year</option>',
+            )
+        );
+
+        $field->setValue($form->model, null);
+
+        testParts(
+            $form->input($field),
+            array(
+                '<select class="form-control day" name="value[day]">',
+                '<option disabled selected>Day</option>',
+                '<select class="form-control month" name="value[month]">',
+                '<option disabled selected>Month</option>',
+                '<select class="form-control year" name="value[year]">',
+                '<option disabled selected>Year</option>',
             )
         );
 
