@@ -210,7 +210,7 @@ class InputValidator
             } else if ($field->max_length !== null) {
                 $this->maxLength($field);
             }
-        } elseif ($field instanceof DateTimeField) {
+        } elseif ($field instanceof DateTimeStringField) {
             $this->datetime($field);
         } elseif ($field instanceof EmailField) {
             $this->email($field);
@@ -618,14 +618,14 @@ class InputValidator
     }
 
     /**
-     * Validate date/time input in the format specified by the given DateTimeField.
+     * Validate date or date/time input in the format specified by the given DateTimeStringField.
      *
-     * @param DateTimeField $field
-     * @param string        $error error message
+     * @param DateTimeStringField $field
+     * @param string              $error error message
      *
      * @return $this
      */
-    public function datetime(DateTimeField $field, $error = null)
+    public function datetime(DateTimeStringField $field, $error = null)
     {
         $input = $this->getInput($field);
 
