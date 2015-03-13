@@ -592,6 +592,9 @@ class InputValidator
     /**
      * Validate selection from a list of allowed values (for drop-down inputs, radio lists, etc.)
      *
+     * This will automatically respect {@link Field::$required} so there is no need to manually
+     * validate as required() beforehand.
+     *
      * @param Field|HasOptions $field
      * @param string[]|null    $values list of allowed values (or NULL to obtain allowed values from Field)
      * @param string           $error  error message
@@ -602,6 +605,12 @@ class InputValidator
      */
     public function selected(Field $field, array $values = null, $error = null)
     {
+        $input = $this->getInput($field);
+
+        if (($field->required === false) && ($input === null)) {
+            return $this; // no input, not required
+        }
+
         if ($values === null) {
             if ($field instanceof HasOptions) {
                 $values = array_map('strval', array_keys($field->getOptions()));
@@ -610,7 +619,7 @@ class InputValidator
             }
         }
 
-        if (! in_array($this->getInput($field), $values, true)) {
+        if (!in_array($input, $values, true)) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 

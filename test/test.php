@@ -828,13 +828,26 @@ test(
             '2' => 'bar',
         ));
 
+        $field->required = false;
+
+        testValidator(
+            $field,
+            function (InputValidator $v, SelectField $f) {
+                $v->selected($f);
+            },
+            array('1', '2', true, '', null),
+            array('0', '3')
+        );
+
+        $field->required = true;
+
         testValidator(
             $field,
             function (InputValidator $v, SelectField $f) {
                 $v->selected($f);
             },
             array('1', '2', true),
-            array('0', '3', null)
+            array('0', '3', '', null)
         );
     }
 );

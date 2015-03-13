@@ -49,7 +49,7 @@ class InputModel
      */
     public function getInput(Field $field)
     {
-        if (!isset($this->input[$field->name])) {
+        if (!isset($this->input[$field->name]) || $this->input[$field->name] === '') {
             return null;
         }
 
