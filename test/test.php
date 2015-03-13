@@ -1,6 +1,7 @@
 <?php
 
 use mindplay\kissform\CheckboxField;
+use mindplay\kissform\DateField;
 use mindplay\kissform\DateSelectField;
 use mindplay\kissform\EmailField;
 use mindplay\kissform\HiddenField;
@@ -871,16 +872,27 @@ test(
 test(
     'validate datetime()',
     function () {
-        $field = new DateTimeField('value', 'UTC');
+        $field = new DateField('value', 'UTC');
         $field->format = 'Y-m-d';
 
         testValidator(
             $field,
-            function (InputValidator $v, DateTimeField $f) {
+            function (InputValidator $v, DateField $f) {
                 $v->datetime($f);
             },
             array('1975-07-07', '2014-01-01', '2014-12-31'),
             array('2014-1-1', '2014', '2014-13-01', '2014-12-32', '2014-0-1', '2014-1-0')
+        );
+
+        $field->format = 'j/n/Y';
+
+        testValidator(
+            $field,
+            function (InputValidator $v, DateField $f) {
+                $v->datetime($f);
+            },
+            array('7/7/1975', '1/1/2014', '31/12/2014'),
+            array('2014/01/01', '2014', '1/13/2014', '32/12/2014', '0/1/2014', '1/0/2014')
         );
     }
 );
