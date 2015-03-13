@@ -658,17 +658,17 @@ test(
 test(
     'validate range()',
     function () {
-        $int_field = new IntField('value');
-        $int_field->min_value = 100;
-        $int_field->max_value = 1000;
+        $field = new IntField('value');
+        $field->min_value = 100;
+        $field->max_value = 1000;
 
         testValidator(
-            $int_field,
+            $field,
             function (InputValidator $v, IntField $f) {
                 $v->range($f);
             },
-            array(100, 500, 1000),
-            array(99, 1001, -1, null, '')
+            array(100, 500, 1000, null, ''),
+            array(99, 1001, -1)
         );
     }
 );
@@ -701,8 +701,8 @@ test(
             function (InputValidator $v, IntField $f) {
                 $v->maxValue($f);
             },
-            array(-1, 0, 1000),
-            array(1001, null, '')
+            array(-1, 0, 1000, null, ''),
+            array(1001)
         );
     }
 );
@@ -715,8 +715,8 @@ test(
             function (InputValidator $v, IntField $f) {
                 $v->int($f);
             },
-            array('0', '-1', '1', '123'),
-            array('', null, '-', 'foo', '0.0', '1.0', '123.4')
+            array('0', '-1', '1', '123', '', null),
+            array('-', 'foo', '0.0', '1.0', '123.4')
         );
     }
 );
@@ -729,8 +729,8 @@ test(
             function (InputValidator $v, IntField $f) {
                 $v->float($f);
             },
-            array('0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1'),
-            array('', null, '-', 'foo')
+            array('0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1', '', null),
+            array('-', 'foo')
         );
     }
 );
@@ -923,6 +923,22 @@ test(
             },
             array($valid), // now it's valid!
             array('', null, '1' . $valid) // never valid
+        );
+    }
+);
+
+test(
+    'validate match()',
+    function () {
+        $field = new TextField('value');
+
+        testValidator(
+            $field,
+            function (InputValidator $v, TextField $f) {
+                $v->match($f, '/[a-z]+\d+/', "whoops");
+            },
+            array('a1', 'abc123', '', null),
+            array('123abc', '_')
         );
     }
 );

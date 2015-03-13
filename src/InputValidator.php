@@ -275,7 +275,13 @@ class InputValidator
      */
     public function match(Field $field, $pattern, $error, array $values = array())
     {
-        if (!preg_match($pattern, $this->getInput($field))) {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no value
+        }
+
+        if (!preg_match($pattern, $input)) {
             $this->error($field, $error, $values);
         }
 
@@ -292,7 +298,7 @@ class InputValidator
      */
     public function required(Field $field, $error = null)
     {
-        if ($this->getInput($field) == '') {
+        if ($this->getInput($field) === null) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -333,7 +339,13 @@ class InputValidator
      */
     public function int(Field $field, $error = null)
     {
-        if (filter_var($this->getInput($field), FILTER_VALIDATE_INT) === false) {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
+
+        if (filter_var($input, FILTER_VALIDATE_INT) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -350,7 +362,13 @@ class InputValidator
      */
     public function float(Field $field, $error = null)
     {
-        if (filter_var($this->getInput($field), FILTER_VALIDATE_FLOAT) === false) {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
+
+        if (filter_var($input, FILTER_VALIDATE_FLOAT) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -367,7 +385,13 @@ class InputValidator
      */
     public function email(Field $field, $error = null)
     {
-        if (filter_var($this->getInput($field), FILTER_VALIDATE_EMAIL) === false) {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
+
+        if (filter_var($input, FILTER_VALIDATE_EMAIL) === false) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
         }
 
@@ -386,12 +410,18 @@ class InputValidator
      */
     public function length(Field $field, $min = null, $max = null, $error = null)
     {
+        $input = $this->getInput($field);
+
         if ($field instanceof TextField) {
             $min = $min ?: $field->min_length;
             $max = $max ?: $field->max_length;
         }
 
-        $length = strlen($this->getInput($field));
+        if ($input === null && $min === null) {
+            return $this; // no input and no minimum length
+        }
+
+        $length = strlen($input);
 
         if ($length < $min || $length > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
@@ -415,7 +445,13 @@ class InputValidator
             $min = $min ?: $field->min_length;
         }
 
-        $length = strlen($this->getInput($field));
+        $input = $this->getInput($field);
+
+        if ($input === null && $min === null) {
+            return $this; // no input and no minimum length
+        }
+
+        $length = strlen($input);
 
         if ($length < $min) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
@@ -435,11 +471,17 @@ class InputValidator
      */
     public function maxLength(Field $field, $max = null, $error = null)
     {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
+
         if ($field instanceof TextField) {
             $max = $max ?: $field->max_length;
         }
 
-        $length = strlen($this->getInput($field));
+        $length = strlen($input);
 
         if ($length > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
@@ -475,9 +517,13 @@ class InputValidator
             }
         }
 
-        $value = $this->getInput($field);
+        $input = $this->getInput($field);
 
-        if ($value < $min || $value > $max) {
+        if ($input === null) {
+            return $this; // no input, no minimum value
+        }
+
+        if ($input < $min || $input > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min, 'max' => $max));
         }
 
@@ -495,6 +541,12 @@ class InputValidator
      */
     public function maxValue(Field $field, $max = null, $error = null)
     {
+        $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
+
         $this->float($field);
 
         if ($this->model->hasError($field)) {
@@ -509,9 +561,7 @@ class InputValidator
             }
         }
 
-        $value = $this->getInput($field);
-
-        if ($value > $max) {
+        if ($input > $max) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('max' => $max));
         }
 
@@ -543,9 +593,9 @@ class InputValidator
             }
         }
 
-        $value = $this->getInput($field);
+        $input = $this->getInput($field);
 
-        if ($value < $min) {
+        if ($input < $min) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('min' => $min));
         }
 
@@ -637,6 +687,10 @@ class InputValidator
     public function datetime(DateTimeStringField $field, $error = null)
     {
         $input = $this->getInput($field);
+
+        if ($input === null) {
+            return $this; // no input
+        }
 
         if ($field->parseInput($input) === null) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__]);
