@@ -23,6 +23,8 @@ require __DIR__ . '/header.php';
 
 header('Content-type: text/plain');
 
+session_start();
+
 if (coverage()) {
     $filter = coverage()->filter();
 
@@ -1055,5 +1057,7 @@ if (coverage()) {
     $report = new PHP_CodeCoverage_Report_Clover();
     $report->process(coverage(), __DIR__ . '/build/logs/clover.xml');
 }
+
+session_destroy();
 
 exit(status());

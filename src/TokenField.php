@@ -2,6 +2,8 @@
 
 namespace mindplay\kissform;
 
+use RuntimeException;
+
 /**
  * This class represents a hidden input containing a cross-site request forgery (CSRF) token
  */
@@ -48,6 +50,13 @@ class TokenField extends Field implements RenderableField
     public $secret;
 
     /**
+     * @var bool[] map of tokens validated and consumed during the lifetime of this object
+     *
+     * @see verifyToken()
+     */
+    private $valid = array();
+
+    /**
      * @param string $name   field name
      * @param string $secret secret salt
      */
@@ -66,13 +75,17 @@ class TokenField extends Field implements RenderableField
     {
         $salt = sha1(microtime(true) . rand(0,9999999));
 
-        $hash = hash_hmac(self::HASH_ALGO, $salt . $this->timestamp, $this->secret);
+        $hash = $this->hash($salt, $this->timestamp);
 
-        return base64_encode(json_encode(array(
+        $token = base64_encode(json_encode(array(
             self::KEY_TIMESTAMP => $this->timestamp,
-            self::KEY_SALT => $salt,
-            self::KEY_HASH => $hash,
+            self::KEY_SALT      => $salt,
+            self::KEY_HASH      => $hash,
         )));
+
+        $this->registerToken($token);
+
+        return $token;
     }
 
     /**
@@ -82,6 +95,10 @@ class TokenField extends Field implements RenderableField
      */
     public function checkToken($token)
     {
+        if (!$this->verifyToken($token)) {
+            return false; // no such token was issued
+        }
+
         $data = @json_decode(base64_decode($token), true);
 
         if (!isset($data[self::KEY_TIMESTAMP], $data[self::KEY_SALT], $data[self::KEY_HASH])) {
@@ -92,7 +109,7 @@ class TokenField extends Field implements RenderableField
         $salt = $data[self::KEY_SALT];
         $hash = $data[self::KEY_HASH];
 
-        if ($hash !== hash_hmac(self::HASH_ALGO, $salt . $timestamp, $this->secret)) {
+        if ($hash !== $this->hash($salt, $timestamp)) {
             return false; // wrong hash
         }
 
@@ -123,5 +140,69 @@ class TokenField extends Field implements RenderableField
                 'value' => $this->createToken(),
             )
         );
+    }
+
+    /**
+     * @param string $salt
+     * @param int $timestamp
+     * @return string
+     */
+    private function hash($salt, $timestamp)
+    {
+        $data = $salt . $timestamp . @$_SERVER['REMOTE_ADDR'] . @$_SERVER['HTTP_USER_AGENT'] . session_id();
+
+        return hash_hmac(self::HASH_ALGO, $data, $this->secret);
+    }
+
+    /**
+     * Register a new token in session variables.
+     *
+     * @param string $token
+     *
+     * @return void
+     *
+     * @see verifyToken()
+     */
+    private function registerToken($token)
+    {
+        if (!session_id()) {
+            throw new RuntimeException("no active session");
+        }
+
+        if (!isset($_SESSION[__CLASS__])) {
+            $_SESSION[__CLASS__] = array();
+        }
+
+        $_SESSION[__CLASS__][$token] = true;
+
+        if (count($_SESSION[__CLASS__]) > 10) {
+            // truncate garbage tokens (which may accummulate if the user keeps hitting "refresh")
+
+            $_SESSION[__CLASS__] = array_slice($_SESSION[__CLASS__], -10, null, true);
+        }
+    }
+
+    /**
+     * Verify a previously registered token, and remove it from session variables.
+     *
+     * @param string $token
+     *
+     * @return bool true, if the given token exists
+     *
+     * @see registerToken()
+     */
+    private function verifyToken($token)
+    {
+        if (!session_id()) {
+            throw new RuntimeException("no active session");
+        }
+
+        if (isset($_SESSION[__CLASS__][$token])) {
+            unset($_SESSION[__CLASS__][$token]);
+
+            $this->valid[$token] = true;
+        }
+
+        return isset($this->valid[$token]);
     }
 }
