@@ -397,6 +397,14 @@ test(
         $field->wrapper_class = null;
 
         eq($form->input($field), '<label><input name="form[bool]" type="checkbox" value="1"/>I agree</label>');
+
+        eq($field->getValue($form->model), false, 'unchecked exposed as FALSE in the model');
+
+        $field->setValue($form->model, true);
+
+        eq($form->input($field), '<label><input checked name="form[bool]" type="checkbox" value="1"/>I agree</label>');
+
+        eq($field->getValue($form->model), true, 'checked exposed as TRUE in the model');
     }
 );
 

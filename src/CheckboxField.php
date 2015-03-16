@@ -34,7 +34,7 @@ class CheckboxField extends Field implements RenderableField
             array(
                 'name'    => $renderer->createName($this),
                 'value'   => $this->checked_value,
-                'checked' => $model->getInput($this) == $this->checked_value ? 'checked' : null,
+                'checked' => $model->getInput($this) === $this->checked_value,
                 'type'    => 'checkbox',
             )
         );
@@ -43,5 +43,26 @@ class CheckboxField extends Field implements RenderableField
             ($this->wrapper_class ? '<div class="' . $this->wrapper_class . '">' : '')
             . ($label ? $renderer->tag('label', array(), $input . $renderer->softEncode($label)) : $input)
             . ($this->wrapper_class ? '</div>' : '');
+    }
+
+    /**
+     * @param InputModel $model
+     *
+     * @return bool
+     */
+    public function getValue(InputModel $model)
+    {
+        return $model->getInput($this) === $this->checked_value;
+    }
+
+    /**
+     * @param InputModel $model
+     * @param bool       $value
+     *
+     * @return void
+     */
+    public function setValue(InputModel $model, $value)
+    {
+        $model->setInput($this, $value ? $this->checked_value : null);
     }
 }
