@@ -711,6 +711,10 @@ class InputValidator
     {
         $input = $this->getInput($field);
 
+        if ($input === null) {
+            throw new RuntimeException("no form token posted");
+        }
+
         if (! $field->checkToken($input)) {
             $this->error($field, $error ?: $this->lang[__FUNCTION__], array('time' => $field->valid_from));
         }

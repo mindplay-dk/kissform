@@ -924,7 +924,17 @@ test(
                 $v->token($f);
             },
             array($valid), // now it's valid!
-            array('', null, '1' . $valid) // never valid
+            array('1' . $valid) // mangled token
+        );
+
+        $validator = new InputValidator(array());
+
+        expect(
+            'RuntimeException',
+            'should throw on missing form token',
+            function () use ($validator, $field) {
+                $validator->token($field);
+            }
         );
     }
 );
