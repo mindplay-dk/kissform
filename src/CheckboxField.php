@@ -31,7 +31,7 @@ class CheckboxField extends Field implements RenderableField
 
         $input = $renderer->tag(
             'input',
-            array(
+            $attr + array(
                 'name'    => $renderer->createName($this),
                 'value'   => $this->checked_value,
                 'checked' => $model->getInput($this) === $this->checked_value,
