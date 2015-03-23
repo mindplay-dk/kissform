@@ -45,6 +45,12 @@ class SelectField extends Field implements RenderableField, HasOptions
 
         $options = $this->getOptions();
 
+        $values = array_map('strval', array_keys($options));
+
+        if (! in_array($selected, $values, true)) {
+            $selected = null; // selected value isn't present in the list of options
+        }
+
         $html = '';
 
         if ($this->disabled !== null) {
