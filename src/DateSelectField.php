@@ -4,7 +4,6 @@ namespace mindplay\kissform;
 
 use DateTime;
 use DateTimeZone;
-use IntlDateFormatter;
 use UnexpectedValueException;
 use InvalidArgumentException;
 
