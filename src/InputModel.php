@@ -48,35 +48,45 @@ class InputModel
     }
 
     /**
-     * @param Field $field
+     * @param Field|string $field
      *
      * @return string|array|null value (or NULL, if no value exists in $input)
      */
-    public function getInput(Field $field)
+    public function getInput($field)
     {
-        if (!isset($this->input[$field->name]) || $this->input[$field->name] === '') {
+        $name = $field instanceof Field
+            ? $field->name
+            : (string) $field;
+
+        if (!isset($this->input[$name]) || $this->input[$name] === '') {
             return null;
         }
 
-        if (is_scalar($this->input[$field->name])) {
-            return (string)$this->input[$field->name];
+        if (is_scalar($this->input[$name])) {
+            return (string) $this->input[$name];
         }
 
-        return $this->input[$field->name];
+        return $this->input[$name];
     }
 
     /**
-     * @param Field             $field
+     * @param Field|string      $field
      * @param string|array|null $value
      *
      * @return void
      */
-    public function setInput(Field $field, $value)
+    public function setInput($field, $value)
     {
+        $name = $field instanceof Field
+            ? $field->name
+            : (string) $field;
+
         if ($value === null || $value === '' || $value === array()) {
-            unset($this->input[$field->name]);
+            unset($this->input[$name]);
         } else {
-            $this->input[$field->name] = is_array($value) ? $value : (string) $value;
+            $this->input[$name] = is_array($value)
+                ? $value
+                : (string) $value;
         }
     }
 
@@ -124,25 +134,27 @@ class InputModel
     }
 
     /**
-     * @param Field $field
+     * @param Field|string $field
      *
      * @return bool true, if the given Field has an error message
      *
      * @see $errors
      */
-    public function hasError(Field $field)
+    public function hasError($field)
     {
-        return isset($this->errors[$field->name]);
+        return isset($this->errors[$field instanceof Field ? $field->name : (string) $field]);
     }
 
     /**
      * Clear the current error message for a given Field
      *
-     * @param Field $field Field to clear error message for
+     * @param Field|string $field Field to clear error message for
+     *
+     * @return void
      */
-    public function clearError(Field $field)
+    public function clearError($field)
     {
-        unset($this->errors[$field->name]);
+        unset($this->errors[$field instanceof Field ? $field->name : (string) $field]);
     }
 
     /**
