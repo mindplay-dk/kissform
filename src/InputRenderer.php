@@ -476,7 +476,7 @@ class InputRenderer
     {
         return
             $this->group($field, $group_attr)
-            . $this->label($field)
+            . $this->label($field, $label)
             . $this->input($field, $input_attr)
             . $this->endGroup();
     }
