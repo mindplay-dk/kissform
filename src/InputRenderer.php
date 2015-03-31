@@ -182,7 +182,7 @@ class InputRenderer
             ? $field->name
             : (string) $field;
 
-        $this->model = InputModel::create(@$model->input[$key], @$model->errors[$key]);
+        $this->model = InputModel::create(@$model->input[$key], $model->getError($key));
         $this->name_prefix = array_merge((array) $this->name_prefix, array($key));
         $this->id_prefix = $this->id_prefix
             ? $this->id_prefix . '-' . $key
@@ -197,7 +197,7 @@ class InputRenderer
         }
 
         if ($this->model->hasErrors()) {
-            $model->errors[$key] = $this->model->errors;
+            $model->setError($key, $this->model->getErrors());
         }
 
         $this->model = $model;

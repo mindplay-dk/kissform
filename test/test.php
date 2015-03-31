@@ -50,7 +50,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 
         call_user_func($function, $validator, $field);
 
-        ok(!isset($validator->model->errors['value']), "field " . get_class($field) . " accepts value: " . format($valid_value));
+        ok(!$validator->model->getError($field), "field " . get_class($field) . " accepts value: " . format($valid_value));
     }
 
     foreach ($invalid as $invalid_value) {
@@ -58,7 +58,7 @@ function testValidator(Field $field, $function, array $valid, array $invalid)
 
         call_user_func($function, $validator, $field);
 
-        ok(isset($validator->model->errors['value']), "field " . get_class($field) . " rejects value: " . format($invalid_value) . " (" . @$validator->model->errors['value'] . ")");
+        ok($validator->model->hasError($field), "field " . get_class($field) . " rejects value: " . format($invalid_value) . " (" . @$validator->model->getError($field) . ")");
     }
 }
 
@@ -67,7 +67,7 @@ test(
     function () {
         $model = InputModel::create();
         eq($model->input, array(), 'defaults to empty input');
-        eq($model->errors, array(), 'defaults to empty error list');
+        eq($model->getErrors(), array(), 'defaults to empty error list');
 
         $field = new TextField('test');
         $model->setInput($field, 'foo');
@@ -78,20 +78,29 @@ test(
         eq($model->input, array(), 'removes NULL values');
 
         eq($model->hasErrors(), false, 'model has no errors initially');
+        eq($model->isValid(), false, 'model is not valid initially (because it has not been validated)');
         eq($model->hasError($field), false, 'field has no error initially');
         $model->setError($field, 'bang');
-        eq($model->errors, array('test' => 'bang'));
+        eq($model->getErrors(), array('test' => 'bang'));
         eq($model->hasError($field), true, 'field has error');
         eq($model->hasErrors(), true, 'model has errors');
+        eq($model->isValid(), false, 'model still is not valid');
 
         $model->clearError($field);
         eq($model->hasErrors(), false, 'model has no errors after clearing');
+        eq($model->isValid(), false, 'model still is not valid');
         eq($model->hasError($field), false, 'field has no error after clearing');
 
         $model->setError($field, 'bang');
         $model->clearErrors();
         eq($model->hasErrors(), false, 'model has no errors after clearing all');
         eq($model->hasError($field), false, 'field has no error after clearing all');
+        eq($model->isValid(), false, 'model is still not valid');
+
+        $model->clearErrors(true);
+        eq($model->isValid(), true, 'model is valid after resetting with TRUE (e.g. when you create a validator)');
+        $model->setError($field, 'bang');
+        eq($model->isValid(), false, 'model is invalid after adding one error');
     }
 );
 
@@ -136,7 +145,7 @@ test(
         $renderer->visit($parent, function (InputModel $model) {});
 
         eq($renderer->model->input, array(), 'input remains empty after visiting');
-        eq($renderer->model->errors, array(), 'errors remain empty after visiting');
+        eq($renderer->model->getErrors(), array(), 'errors remain empty after visiting');
 
         $renderer->visit($parent, function (InputModel $model) use ($renderer, $child) {
             $child->setValue($model, 'test');
@@ -150,7 +159,7 @@ test(
         eq($renderer->id_prefix, 'form', 'id prefix restored');
 
         eq($renderer->model->input, array('parent' => array('child' => 'test')), 'child value merged to parent');
-        eq($renderer->model->errors, array('parent' => array('child' => 'whoops')), 'child errors merged to parent');
+        eq($renderer->model->getErrors(), array('parent' => array('child' => 'whoops')), 'child errors merged to parent');
 
         $renderer->model = InputModel::create(array(123 => array('child' => 'hello')));
 
@@ -232,7 +241,7 @@ test(
 
         eq($form->group($field) . $form->endGroup(), '<div class="form-group"></div>');
 
-        $form->model->errors['text'] = 'some error';
+        $form->model->setError($field, 'some error');
 
         eq($form->group($field), '<div class="form-group has-error">');
 
@@ -599,41 +608,34 @@ test(
 test(
     'validator behavior',
     function () {
-        $validator = new InputValidator(array());
+        $model = InputModel::create();
+        $validator = new InputValidator($model);
         $field = new TextField('email');
 
-        expect(
-            'RuntimeException',
-            'undefined property access',
-            function () use ($validator) {
-                /** @noinspection PhpUndefinedFieldInspection that's the whole point! */
-                $validator->foo_bar;
-            }
-        );
-
-        eq($validator->valid, true, 'no errors initially (is valid)');
-        eq($validator->invalid, false, 'no errors initially (is not invalid)');
+        eq($model->isValid(), true, 'no errors initially (is valid)');
+        eq($model->hasErrors(), false, 'no errors initially (is not invalid)');
 
         $validator->error($field, 'some {token}', array('token' => 'error'));
 
-        eq($validator->valid, false, 'errors are present (is not valid)');
-        eq($validator->invalid, true, 'errors are present (is invalid)');
+        eq($model->isValid(), false, 'errors are present (is not valid)');
+        eq($model->hasErrors(), true, 'errors are present (is invalid)');
 
-        eq($validator->model->errors['email'], 'some error', 'error messages get formatted');
+        eq($model->getError($field), 'some error', 'error messages get formatted');
 
         $validator->error($field, 'some other error');
 
-        eq($validator->model->errors['email'], 'some error', 'first error message is retained');
+        eq($model->getError($field), 'some error', 'first error message is retained');
 
-        $validator->model->clearError($field);
+        $model->clearError($field);
 
-        eq($validator->valid, true, 'error message cleared');
+        eq($model->isValid(), true, 'error message cleared');
+        eq($model->hasErrors(), false, 'error message cleared');
 
         $validator->error($field, 'some error again');
 
-        $validator->reset();
+        $model->clearErrors();
 
-        eq($validator->valid, true, 'errors have been cleared');
+        eq($model->isValid(), false, 'errors have been cleared (but model initializes as non-validated by default)');
     }
 );
 
@@ -753,13 +755,13 @@ test(
 
         $validator = new InputValidator(array('value' => 'foo', 'other' => 'foo'));
         $validator->confirm($field, $other);
-        ok(!isset($validator->model->errors['value']), 'value field has no error');
-        ok(!isset($validator->model->errors['other']), 'other field has no error');
+        ok(!$validator->model->hasError($field), 'value field has no error');
+        ok(!$validator->model->hasError($other), 'other field has no error');
 
         $validator = new InputValidator(array('value' => 'foo', 'other' => 'bar'));
         $validator->confirm($field, $other);
-        ok(!isset($validator->model->errors['value']), 'value field has no error');
-        ok(isset($validator->model->errors['other']), 'other field has error');
+        ok(!$validator->model->hasError($field), 'value field has no error');
+        ok($validator->model->hasError($other), 'other field has error');
     }
 );
 

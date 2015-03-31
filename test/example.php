@@ -54,7 +54,7 @@ $model = InputModel::create(@$_SESSION[__FILE__]);
 unset($_SESSION[__FILE__]);
 
 if (isset($_POST['form'])) {
-    $model->input = $_POST['form'];
+    $model = InputModel::create($_POST['form']);
 
     $_SESSION[__FILE__] = $model;
 
@@ -67,12 +67,12 @@ if (isset($_POST['form'])) {
         ->int($t->amount)
         ->checked($t->i_agree);
 
-    if ($validator->invalid) {
+    if ($model->isValid()) {
+        $message = 'Thank You for your Donation!';
+    } else {
         header('Location: ' . $_SERVER['REQUEST_URI']);
 
         exit;
-    } else {
-        $message = 'Thank You for your Donation!';
     }
 
     unset($validator);
@@ -111,7 +111,7 @@ $form = new InputRenderer($model, 'form');
 <?php if ($model->hasErrors()): ?>
     <div class="alert alert-danger">
         <ul>
-            <?php foreach ($model->errors as $error): ?>
+            <?php foreach ($model->getErrors() as $error): ?>
             <li><?= $error ?></li>
             <?php endforeach ?>
         </ul>

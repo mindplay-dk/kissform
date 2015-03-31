@@ -7,15 +7,12 @@ use RuntimeException;
 /**
  * Simple form input validator.
  *
- * Errors accumulate in the public {@see $errors} property, indexed by name - only
- * the first error encountered (for a given property) is recorded, since typically
- * multiple error-messages for the same property are of no use to anyone.
+ * Errors accumulate internally - only the first error encountered (for a given property)
+ * is recorded, since commonly multiple error-messages for the same property are
+ * of no practical help to the end-user.
  *
  * By default {@see Field::$label} is used when referring to fields in error messages,
  * but you can override these names using {@see title()}.
- *
- * @property-read bool $valid   true, if no errors have been recorded; otherwise false.
- * @property-read bool $invalid true, if errors have been recorded; otherwise false.
  */
 class InputValidator
 {
@@ -61,11 +58,15 @@ class InputValidator
     public $password_pattern = "#.*^(?=.*[a-z])(?=.*[A-Z0-9]).*$#";
 
     /**
+     * The given input/model is assumed to be valid
+     *
      * @param InputModel|array|null $model the form input to be validated
      */
     public function __construct($model)
     {
         $this->model = InputModel::create($model);
+
+        $this->model->clearErrors(true);
     }
 
     /**
@@ -76,31 +77,6 @@ class InputValidator
     protected function getInput(Field $field)
     {
         return $this->model->getInput($field);
-    }
-
-    /**
-     * Read accessors (see <code>@property</code> annotations)
-     *
-     * @param string $name
-     *
-     * @return mixed
-     *
-     * @throws RuntimeException on attempted access to undefined property
-     *
-     * @ignore
-     */
-    public function __get($name)
-    {
-        switch ($name) {
-            case 'valid':
-                return $this->model->hasErrors() === false;
-
-            case 'invalid':
-                return $this->model->hasErrors();
-
-            default:
-                throw new RuntimeException("undefined property \${$name}");
-        }
     }
 
     /**
@@ -133,18 +109,6 @@ class InputValidator
     public function title(Field $field, $title)
     {
         $this->titles[$field->name] = $title;
-
-        return $this;
-    }
-
-    /**
-     * Reset all accumulated error messages (for all fields)
-     *
-     * @return $this
-     */
-    public function reset()
-    {
-        $this->model->clearErrors();
 
         return $this;
     }
