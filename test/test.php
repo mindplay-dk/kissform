@@ -185,7 +185,9 @@ test(
 
         eq($renderer->openTag('div'), '<div>', 'open tag');
 
-        eq($renderer->attrs(array('a' => false, 'b' => null, 'c' => '', 'd' => array())), '', 'filters empty attributes');
+        eq($renderer->attrs(array('a' => false, 'b' => null, 'c' => array())), '', 'filters FALSE, NULL and empty array() attributes');
+
+        eq($renderer->attrs(array('a' => '')), ' a=""', 'does not filter empty string attribute');
 
         eq($renderer->attrs(array('a' => 'foo', 'b' => 'bar')), ' a="foo" b="bar"', 'adds a leading space');
 
@@ -304,7 +306,7 @@ test(
 
         $field->setValue($model, 'supersecret');
 
-        eq($form->input($field), '<input class="form-control" name="value" type="password" value="supersecret"/>', 'input with type=password');
+        eq($form->input($field), '<input class="form-control" name="value" type="password" value=""/>', 'input with type=password');
     }
 );
 

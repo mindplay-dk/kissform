@@ -273,10 +273,12 @@ class InputRenderer
 
         foreach ($attr as $name => $value) {
             if (is_array($value)) {
-                $value = implode(' ', $value); // fold multi-value attribute (e.g. class-names)
+                $value = count($value)
+                    ? implode(' ', $value) // fold multi-value attribute (e.g. class-names)
+                    : null; // filter empty array
             }
 
-            if ($value === '' || $value === null || $value === false) {
+            if ($value === null || $value === false) {
                 continue; // skip empty, NULL, FALSE attributes (and empty arrays)
             }
 
