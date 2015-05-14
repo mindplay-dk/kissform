@@ -1,6 +1,8 @@
 mindplay/kissform
 =================
 
+[![Build Status](https://travis-ci.org/mindplay-dk/kissform.svg?branch=master)](https://travis-ci.org/mindplay-dk/kissform)
+
 Model-driven form rendering and input validation.
 
 Yeah, I know, "another form library", but this is probably a bit different
