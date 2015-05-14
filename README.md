@@ -3,6 +3,8 @@ mindplay/kissform
 
 [![Build Status](https://travis-ci.org/mindplay-dk/kissform.svg?branch=master)](https://travis-ci.org/mindplay-dk/kissform)
 
+[![Code Coverage](https://scrutinizer-ci.com/g/mindplay-dk/kissform/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mindplay-dk/kissform/?branch=master)
+
 Model-driven form rendering and input validation.
 
 Yeah, I know, "another form library", but this is probably a bit different
