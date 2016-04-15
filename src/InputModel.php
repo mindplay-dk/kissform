@@ -2,6 +2,8 @@
 
 namespace mindplay\kissform;
 
+use mindplay\kissform\Facets\FieldInterface;
+
 /**
  * This model represents form state: input values and errors.
  */
@@ -44,18 +46,18 @@ class InputModel
             return $input; // InputModel instance given
         }
 
-        return new self($input ?: array(), $errors ?: array());
+        return new self($input ?: [], $errors ?: []);
     }
 
     /**
-     * @param Field|string $field
+     * @param FieldInterface|string $field
      *
      * @return string|array|null value (or NULL, if no value exists in $input)
      */
     public function getInput($field)
     {
-        $name = $field instanceof Field
-            ? $field->name
+        $name = $field instanceof FieldInterface
+            ? $field->getName()
             : (string) $field;
 
         if (!isset($this->input[$name]) || $this->input[$name] === '') {
@@ -70,18 +72,18 @@ class InputModel
     }
 
     /**
-     * @param Field|string      $field
-     * @param string|array|null $value
+     * @param FieldInterface|string $field
+     * @param string|array|null     $value
      *
      * @return void
      */
     public function setInput($field, $value)
     {
-        $name = $field instanceof Field
-            ? $field->name
+        $name = $field instanceof FieldInterface
+            ? $field->getName()
             : (string) $field;
 
-        if ($value === null || $value === '' || $value === array()) {
+        if ($value === null || $value === '' || $value === []) {
             unset($this->input[$name]);
         } else {
             $this->input[$name] = is_array($value)
@@ -103,13 +105,13 @@ class InputModel
     /**
      * Get the error message for a given Field.
      *
-     * @param Field|string $field
+     * @param FieldInterface|string $field
      *
      * @return string|string[]|null error-message (or NULL, if the given Field has no error)
      */
     public function getError($field)
     {
-        return @$this->errors[$field instanceof Field ? $field->name : (string) $field];
+        return @$this->errors[$field instanceof FieldInterface ? $field->getName() : (string) $field];
     }
 
     /**
@@ -117,15 +119,15 @@ class InputModel
      * Field - we only care about the first error message for each Field, so add
      * error messages in order of importance.
      *
-     * @param Field|string    $field the field for which to set an error-message
-     * @param string|string[] $error error message (or map of error-messages
+     * @param FieldInterface|string $field the field for which to set an error-message
+     * @param string|string[]       $error error message (or map of error-messages)
      *
      * @return void
      */
     public function setError($field, $error)
     {
-        $name = $field instanceof Field
-            ? $field->name
+        $name = $field instanceof FieldInterface
+            ? $field->getName()
             : (string) $field;
 
         if (! isset($this->errors[$name])) {
@@ -134,7 +136,7 @@ class InputModel
     }
 
     /**
-     * @param Field|string $field
+     * @param FieldInterface|string $field
      *
      * @return bool true, if the given Field has an error message
      *
@@ -142,19 +144,19 @@ class InputModel
      */
     public function hasError($field)
     {
-        return isset($this->errors[$field instanceof Field ? $field->name : (string) $field]);
+        return isset($this->errors[$field instanceof FieldInterface ? $field->getName() : (string) $field]);
     }
 
     /**
      * Clear the current error message for a given Field
      *
-     * @param Field|string $field Field to clear error message for
+     * @param FieldInterface|string $field Field to clear error message for
      *
      * @return void
      */
     public function clearError($field)
     {
-        unset($this->errors[$field instanceof Field ? $field->name : (string) $field]);
+        unset($this->errors[$field instanceof FieldInterface ? $field->getName(): (string) $field]);
     }
 
     /**
@@ -192,7 +194,7 @@ class InputModel
      */
     public function clearErrors($validated = false)
     {
-        $this->errors = array();
+        $this->errors = [];
 
         $this->validated = $validated;
     }

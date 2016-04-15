@@ -1,0 +1,25 @@
+<?php
+
+return [
+    "required"  => "{field} skal udfyldes",
+    "confirm"   => "Gentagelsen skal matche {field}",
+    "int"       => "{field} skal være et helt tal",
+    "float"     => "{field} skal være et tal",
+    "email"     => "{field} skal være en gyldig e-mail adresse",
+    "length"    => "{field} skal være mellem {min} og {max} karakterer lang",
+    "minLength" => "{field} skal være mindst {min} karaterer lang",
+    "maxLength" => "{field} skal være højst {max} karakterer lang",
+    "range"     => "{field} skal være mellem {min} og {max}",
+    "minValue"  => "{field} skal være mindst {min}",
+    "maxValue"  => "{field} skal være højst {max}",
+    "password"  => "Den valgte adgangskode er usikker",
+    "checked"   => "Bekræft ved at afkrydse {field} feltet",
+    "selected"  => "{field} skal vælges",
+    "datetime"  => "{field} skal være en gyldig dato/tid",
+    "token"     => "Du udfyldte formularen for hurtigt - vent cirka 10 sekunder og prøv igen...",
+    "noToken"   => "Denne formular kan kun udfyldes i en browser med cookies - kontroller at cookies er slået til, og prøv igen.",
+    "months"    => "Januar|Februar|Marts|April|Maj|Juni|Juli|August|September|Oktober|November|December",
+    "year"      => "År",
+    "month"     => "Måned",
+    "day"       => "Dag",
+];

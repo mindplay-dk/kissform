@@ -2,11 +2,26 @@
 
 namespace mindplay\kissform;
 
+use mindplay\kissform\Facets\FieldInterface;
 use RuntimeException;
 
 /**
  * This class renders and populates input elements for use in forms,
- * by consuming property-information provided by a type-descriptor.
+ * by consuming property-information provided by {@see Field} objects,
+ * and populating them with state from an {@see InputModel}.
+ *
+ * Conventions for method-names in this class:
+ *
+ *   * `get_()` and `is_()` methods provide raw information about Fields
+ * 
+ *   * `render_()` methods delegate rendering to {@see Field::renderInput} implementations.
+ * 
+ *   * `_For()` methods (such as `inputFor()`) render low-level HTML tags (with state) for Fields
+ * 
+ *   * Verb methods like `visit`, `merge` and `escape` perform various relevant actions
+ * 
+ *   * Noun methods like `tag`, `attrs` and `label` create low-level HTML tags
+ *
  */
 class InputRenderer
 {
@@ -28,7 +43,7 @@ class InputRenderer
     public $model;
 
     /**
-     * @var string|string[] form element name-attribute prefixes
+     * @var string|string[]|null form element name-attribute prefixes
      */
     public $name_prefix;
 
@@ -40,57 +55,98 @@ class InputRenderer
     /**
      * @var string CSS class name applied to all form controls
      *
-     * @see buildInput()
+     * @see inputFor()
      */
     public $input_class = 'form-control';
 
     /**
      * @var string CSS class name added to labels
      *
-     * @see label()
+     * @see labelFor()
      */
     public $label_class = 'control-label';
 
     /**
      * @var string suffix to append to all labels (e.g. ":")
      *
-     * @see label()
+     * @see labelFor()
      */
     public $label_suffix = '';
 
     /**
      * @var string CSS class-name added to required fields
      *
-     * @see group()
+     * @see groupFor()
      */
     public $required_class = 'required';
 
     /**
      * @var string CSS class-name added to fields with error state
      *
-     * @see group()
+     * @see groupFor()
      */
     public $error_class = 'has-error';
 
     /**
      * @var string group tag name (e.g. "div", "fieldset", etc.; defaults to "div")
      *
-     * @see group()
+     * @see groupFor()
      * @see endGroup()
      */
     public $group_tag = 'div';
 
     /**
-     * @var string[] default attributes to be added to opening control-group tags
+     * @var array default attributes to be added to opening control-group tags
      *
-     * @see group()
+     * @see groupFor()
      */
-    public $group_attrs = array('class' => 'form-group');
+    public $group_attrs = ['class' => 'form-group'];
+
+    /**
+     * @var string[] map where Field name => label override
+     */
+    protected $labels = [];
+
+    /**
+     * @var string[] map where Field name => placeholder override
+     */
+    protected $placeholders = [];
+
+    /**
+     * @var bool[] map where Field name => required flag
+     */
+    protected $required = [];
+
+    /**
+     * @var string[] list of void elements
+     *
+     * @see tag()
+     *
+     * @link http://www.w3.org/TR/html-markup/syntax.html#void-elements
+     */
+    private static $void_elements = [
+        'area'    => true,
+        'base'    => true,
+        'br'      => true,
+        'col'     => true,
+        'command' => true,
+        'embed'   => true,
+        'hr'      => true,
+        'img'     => true,
+        'input'   => true,
+        'keygen'  => true,
+        'link'    => true,
+        'meta'    => true,
+        'param'   => true,
+        'source'  => true,
+        'track'   => true,
+        'wbr'     => true,
+    ];
 
     /**
      * @param InputModel|array|null $model       input model, or (possibly nested) input array (e.g. $_GET or $_POST)
-     * @param string|string[]       $name_prefix base name(s) for inputs, e.g. 'myform' or array('myform', '123') etc.
-     * @param null                  $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
+     * @param string|string[]|null  $name_prefix base name(s) for inputs, e.g. 'myform' or ['myform', '123'] etc.
+     * @param string|null           $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
     public function __construct($model = null, $name_prefix = null, $id_prefix = null)
     {
@@ -104,62 +160,176 @@ class InputRenderer
     }
 
     /**
-     * @param Field $field
+     * @param FieldInterface $field
      *
      * @return string
      *
-     * @see Field::$label
+     * @see Field::getLabel()
      */
-    public function getLabel(Field $field)
+    public function getLabel(FieldInterface $field)
     {
-        return $field->label;
+        return array_key_exists($field->getName(), $this->labels)
+            ? $this->labels[$field->getName()]
+            : $field->getLabel();
     }
 
     /**
-     * @param Field $field
+     * Override the label defined by the Field
+     *
+     * @param FieldInterface $field
+     * @param string         $label
+     */
+    public function setLabel(FieldInterface $field, $label)
+    {
+        $this->labels[$field->getName()] = $label;
+    }
+
+    /**
+     * @param FieldInterface $field
      *
      * @return string
      *
-     * @see Field::$placeholder
+     * @see Field::getPlaceholder()
      */
-    public function getPlaceholder(Field $field)
+    public function getPlaceholder(FieldInterface $field)
     {
-        return $field->placeholder;
+        return array_key_exists($field->getName(), $this->placeholders)
+            ? $this->placeholders[$field->getName()]
+            : $field->getPlaceholder();
     }
 
     /**
-     * @param Field $field
+     * Override the placeholder label defined by the Field
      *
-     * @return bool true, if the given Field is required
+     * @param FieldInterface $field
+     * @param string         $placeholder
      */
-    public function isRequired(Field $field)
+    public function setPlaceholder(FieldInterface $field, $placeholder)
     {
-        return $field->required;
+        $this->placeholders[$field->getName()] = $placeholder;
     }
 
     /**
-     * @param Field $field
+     * @param FieldInterface $field
      *
      * @return string|null computed name-attribute
      */
-    public function createName(Field $field)
+    public function getName(FieldInterface $field)
     {
         $names = (array) $this->name_prefix;
-        $names[] = $field->name;
+        $names[] = $field->getName();
 
         return $names[0] . (count($names) > 1 ? '[' . implode('][', array_slice($names, 1)) . ']' : '');
     }
 
     /**
-     * @param Field $field
+     * @param FieldInterface $field
      *
      * @return string|null computed id-attribute
      */
-    public function createId(Field $field)
+    public function getId(FieldInterface $field)
     {
         return $this->id_prefix
-            ? $this->id_prefix . '-' . $field->name
+            ? $this->id_prefix . '-' . $field->getName()
             : null;
+    }
+
+    /**
+     * Conditionally create (or add) CSS class-names for Field status, e.g.
+     * {@see $required_class} for {@see Field::$required} and {@see $error_class}
+     * if the {@see $model} contains an error.
+     *
+     * @param FieldInterface $field
+     *
+     * @return array map of HTML attributes (with additonial classes)
+     *
+     * @see $required_class
+     * @see $error_class
+     */
+    public function getAttrs(FieldInterface $field)
+    {
+        $classes = [];
+
+        if ($this->required_class !== null && $this->isRequired($field)) {
+            $classes[] = $this->required_class;
+        }
+
+        if ($this->error_class !== null && $this->model->hasError($field)) {
+            $classes[] = $this->error_class;
+        }
+
+        return ['class' => $classes];
+    }
+
+    /**
+     * @param FieldInterface $field
+     *
+     * @return bool true, if the given Field is required
+     */
+    public function isRequired(FieldInterface $field)
+    {
+        return array_key_exists($field->getName(), $this->required)
+            ? $this->required[$field->getName()]
+            : $field->isRequired();
+    }
+
+    /**
+     * Override the required flag defined by the Field
+     *
+     * @param FieldInterface $field
+     * @param bool           $required
+     */
+    public function setRequired(FieldInterface $field, $required = true)
+    {
+        $this->required[$field->getName()] = (bool) $required;
+    }
+
+    /**
+     * Build an HTML input for a given Field.
+     *
+     * @param FieldInterface $field
+     * @param array          $attr
+     *
+     * @return string
+     *
+     * @throws RuntimeException if the given Field cannot be rendered
+     */
+    public function render(FieldInterface $field, array $attr = [])
+    {
+        return $field->renderInput($this, $this->model, $attr);
+    }
+
+    /**
+     * Builds an HTML group containing a label and rendered input for a given Field.
+     *
+     * @param FieldInterface $field
+     * @param string|null    $label      label text (optional)
+     * @param array          $input_attr map of HTML attributes for the input (optional)
+     * @param array          $group_attr map of HTML attributes for the group (optional)
+     *
+     * @return string
+     */
+    public function renderGroup(FieldInterface $field, $label = null, array $input_attr = [], $group_attr = [])
+    {
+        return
+            $this->groupFor($field, $group_attr)
+            . $this->labelFor($field, $label)
+            . $this->render($field, $input_attr)
+            . $this->endGroup();
+    }
+
+    /**
+     * Builds an HTML div with state-classes, containing a rendered input for a given Field.
+     *
+     * @param FieldInterface $field
+     * @param array          $input_attr attributes for the generated input
+     * @param array          $div_attr   attributes for the wrapper div
+     *
+     * @return string HTML
+     */
+    public function renderDiv(FieldInterface $field, array $input_attr = [], $div_attr = [])
+    {
+        return $this->divFor($field, $this->render($field, $input_attr), $div_attr);
     }
 
     /**
@@ -167,8 +337,8 @@ class InputRenderer
      * and {@see $id_prefix} and merges any changes made to the model while calling
      * the given function.
      *
-     * @param Field|int|string $field Field instance, or an integer index, or string key
-     * @param callable         $func function (InputModel $model): mixed
+     * @param FieldInterface|int|string $field Field instance, or an integer index, or string key
+     * @param callable                  $func  function (InputModel $model): mixed
      *
      * @return mixed
      */
@@ -178,19 +348,19 @@ class InputRenderer
         $name_prefix = $this->name_prefix;
         $id_prefix = $this->id_prefix;
 
-        $key = $field instanceof Field
-            ? $field->name
+        $key = $field instanceof FieldInterface
+            ? $field->getName()
             : (string) $field;
 
         $this->model = InputModel::create(@$model->input[$key], $model->getError($key));
-        $this->name_prefix = array_merge((array) $this->name_prefix, array($key));
+        $this->name_prefix = array_merge((array) $this->name_prefix, [$key]);
         $this->id_prefix = $this->id_prefix
             ? $this->id_prefix . '-' . $key
             : null;
 
         call_user_func($func, $this->model);
 
-        if ($this->model->input !== array()) {
+        if ($this->model->input !== []) {
             $model->input[$key] = $this->model->input;
         } else {
             unset($model->input[$key]);
@@ -206,6 +376,63 @@ class InputRenderer
     }
 
     /**
+     * Merge any number of attribute maps, with the latter overwriting the first, and
+     * with special handling for the class-attribute.
+     *
+     * @param array ...$attr
+     *
+     * @return array
+     */
+    public function mergeAttrs()
+    {
+        $maps = func_get_args();
+
+        $result = [];
+
+        foreach ($maps as $map) {
+            if (isset($map['class'])) {
+                if (isset($result['class'])) {
+                    $map['class'] = array_merge((array) $result['class'], (array) $map['class']);
+                }
+            }
+
+            $result = array_merge($result, $map);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Encode plain text as HTML
+     *
+     * @param string $text  plain text
+     * @param int    $flags encoding flags (optional, see htmlspecialchars)
+     *
+     * @return string escaped HTML
+     *
+     * @see softEscape()
+     */
+    public function escape($text, $flags = ENT_COMPAT)
+    {
+        return htmlspecialchars($text, $flags, $this->encoding, true);
+    }
+
+    /**
+     * Encode plain text as HTML, while attempting to avoid double-encoding
+     *
+     * @param string $text  plain text
+     * @param int    $flags encoding flags (optional, see htmlspecialchars)
+     *
+     * @return string escaped HTML
+     *
+     * @see escape()
+     */
+    public function softEscape($text, $flags = ENT_COMPAT)
+    {
+        return htmlspecialchars($text, $flags, $this->encoding, false);
+    }
+
+    /**
      * Build an opening and closing HTML tag (or a self-closing tag) - examples:
      *
      *     echo $renderer->tag('input', array('type' => 'text'));  => <input type="text"/>
@@ -215,16 +442,16 @@ class InputRenderer
      *     echo $renderer->tag('script', array(), '');             => <script></script>
      *
      * @param string      $name HTML tag name
-     * @param string[]    $attr map of HTML attributes
+     * @param array       $attr map of HTML attributes
      * @param string|null $html inner HTML, or NULL to build a self-closing tag
      *
      * @return string
      *
      * @see openTag()
      */
-    public function tag($name, array $attr = array(), $html = null)
+    public function tag($name, array $attr = [], $html = null)
     {
-        return $html === null
+        return $html === null && isset(self::$void_elements[$name])
             ? '<' . $name . $this->attrs($attr) . '/>'
             : '<' . $name . $this->attrs($attr) . '>' . $html . '</' . $name . '>';
     }
@@ -232,14 +459,17 @@ class InputRenderer
     /**
      * Build an open HTML tag; remember to close the tag.
      *
-     * @param string   $name HTML tag name
-     * @param string[] $attr map of HTML attributes
+     * Note that there is no closeTag() equivalent, as this wouldn't help with anything
+     * and would actually require more code than e.g. a simple literal `</div>`
+     *
+     * @param string $name HTML tag name
+     * @param array  $attr map of HTML attributes
      *
      * @return string
      *
      * @see tag()
      */
-    public function openTag($name, array $attr = array())
+    public function openTag($name, array $attr = [])
     {
         return '<' . $name . $this->attrs($attr) . '>';
     }
@@ -252,7 +482,7 @@ class InputRenderer
      *     <div<?= $form->attrs(array('class' => 'foo')) ?>>...</div>
      *
      * Accepts strings, or arrays of strings, as attribute-values - arrays will
-     * be folded uses space as a separator, e.g. useful for the class-attribute.
+     * be folded using space as a separator, e.g. useful for the class-attribute.
      *
      * Attributes containing NULL, FALSE or an empty array() are ignored.
      *
@@ -279,7 +509,7 @@ class InputRenderer
             }
 
             if ($value === null || $value === false) {
-                continue; // skip empty, NULL, FALSE attributes (and empty arrays)
+                continue; // skip NULL and FALSE attributes
             }
 
             if ($value === true) {
@@ -287,7 +517,7 @@ class InputRenderer
                     ' ' . $name . '="' . $name . '"' // e.g. disabled="disabled" (as required for XHTML)
                     : ' ' . $name; // value-less HTML attribute
             } else {
-                $html .= ' ' . $name . '="' . $this->encode($value) . '"';
+                $html .= ' ' . $name . '="' . $this->escape($value) . '"';
             }
         }
 
@@ -295,149 +525,109 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML input-tag
+     * Builds an HTML <input> tag
      *
-     * @param Field    $field
-     * @param string   $type HTML input type-attribute (e.g. "text", "password", etc.)
-     * @param string[] $attr map of HTML attributes
+     * @param string $type
+     * @param string $name
+     * @param string $value
+     * @param array  $attr map of HTML attributes
+     *
+     * @return string
+     *
+     * @see inputFor()
+     */
+    public function input($type, $name = null, $value= null, $attr = [])
+    {
+        return $this->tag(
+            'input',
+            $this->mergeAttrs(
+                [
+                    'type'  => $type,
+                    'name'  => $name,
+                    'value' => $value,
+                ],
+                $attr
+            )
+        );
+    }
+
+    /**
+     * Build an HTML input-tag for a given Field
+     *
+     * @param FieldInterface $field
+     * @param string         $type HTML input type-attribute (e.g. "text", "password", etc.)
+     * @param array          $attr map of HTML attributes
      *
      * @return string
      */
-    public function buildInput(Field $field, $type, array $attr = array())
+    public function inputFor(FieldInterface $field, $type, array $attr = [])
     {
-        $attr = $this->merge(
-            array(
-                'name'        => $this->createName($field),
-                'id'          => $this->createId($field),
-                'class'       => $this->input_class,
-                'value'       => $this->model->getInput($field),
-                'type'        => $type,
-                'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
-            ),
-            $attr
+        return $this->tag(
+            'input',
+            $this->mergeAttrs(
+                [
+                    'name'        => $this->getName($field),
+                    'id'          => $this->getId($field),
+                    'class'       => $this->input_class,
+                    'value'       => $this->model->getInput($field),
+                    'type'        => $type,
+                    'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
+                ],
+                $attr
+            )
         );
-
-        return $this->tag('input', $attr);
     }
 
     /**
-     * Encode plain text as HTML
+     * Build an HTML opening tag for an input group
      *
-     * @param string $text  plain text
-     * @param int    $flags encoding flags (optional, see htmlspecialchars)
+     * Call {@see endGroup()} to create the matching closing tag.
      *
-     * @return string escaped HTML
+     * @param array $attr optional map of HTML attributes
      *
-     * @see softEncode()
+     * @return string
+     *
+     * @see groupFor()
      */
-    public function encode($text, $flags = ENT_COMPAT)
+    public function group($attr = [])
     {
-        return htmlspecialchars($text, $flags, $this->encoding, true);
-    }
-
-    /**
-     * Encode plain text as HTML, while attempting to avoid double-encoding
-     *
-     * @param string $text  plain text
-     * @param int    $flags encoding flags (optional, see htmlspecialchars)
-     *
-     * @return string escaped HTML
-     *
-     * @see encode()
-     */
-    public function softEncode($text, $flags = ENT_COMPAT)
-    {
-        return htmlspecialchars($text, $flags, $this->encoding, false);
+        return $this->openTag(
+            $this->group_tag,
+            $this->mergeAttrs($this->group_attrs, $attr)
+        );
     }
 
     /**
      * Build an HTML opening tag for an input group, with CSS classes added for
      * {@see Field::$required} and error state, as needed.
      *
-     * Call {@link endGroup()} to create the matching closing tag.
+     * Call {@see endGroup()} to create the matching closing tag.
      *
-     * @param Field|null $field field (or NULL)
-     * @param string[]   $attr map of HTML attributes (optional)
+     * @param FieldInterface $field
+     * @param array          $attr map of HTML attributes (optional)
      *
      * @return string
      *
      * @see $group_tag
-     * @see $group_class
+     * @see $group_attrs
      * @see $required_class
      * @see $error_class
      * @see endGroup()
      */
-    public function group(Field $field = null, array $attr = array())
+    public function groupFor(FieldInterface $field, array $attr = [])
     {
         return $this->openTag(
             $this->group_tag,
-            $field === null
-                ? $this->merge($this->group_attrs, $attr)
-                : $this->state($field, $this->merge($this->group_attrs, $attr))
+            $this->mergeAttrs($this->group_attrs, $this->getAttrs($field), $attr)
         );
     }
 
     /**
-     * Merge any number of attribute maps, with the latter overwriting the first, and
-     * with special handling for the class-attribute.
-     *
-     * @param array ...$attr
-     *
-     * @return array
-     */
-    public function merge()
-    {
-        $maps = func_get_args();
-
-        $result = array();
-
-        foreach ($maps as $map) {
-            if (isset($map['class'])) {
-                if (isset($result['class'])) {
-                    $map['class'] = array_merge((array) $result['class'], (array) $map['class']);
-                }
-            }
-
-            $result = array_merge($result, $map);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Conditionally create (or add) CSS class-names for Field status, e.g.
-     * {@see $required_class} for {@see Field::$required} and {@see $error_class}
-     * if the {@see $model} contains an error.
-     *
-     * @param Field $field
-     * @param array $attr map of HTML attributes
-     *
-     * @return array map of HTML attributes (with additonial classes)
-     *
-     * @see $required_class
-     * @see $error_class
-     */
-    public function state(Field $field, array $attr = array())
-    {
-        $classes = array();
-
-        if ($this->required_class !== null && $this->isRequired($field)) {
-            $classes[] = $this->required_class;
-        }
-
-        if ($this->error_class !== null && $this->model->hasError($field)) {
-            $classes[] = $this->error_class;
-        }
-
-        return $this->merge($attr, array('class' => $classes));
-    }
-
-    /**
-     * Returns the matching closing tag for a {@link group()} tag.
+     * Returns the matching closing tag for a {@see group()} or {@see groupFor()} tag.
      *
      * @return string
      *
-     * @see group()
+     * @see groupFor()
      * @see $group_tag
      */
     public function endGroup()
@@ -446,87 +636,59 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML input for any given Field.
-     *
-     * @param Field $field
-     * @param array $attr
-     *
-     * @return string
-     */
-    public function input(Field $field, array $attr = array())
-    {
-        // TODO implement template selection and support for external templates
-
-        if ($field instanceof RenderableField) {
-            return $field->renderInput($this, $this->model, $attr);
-        }
-
-        throw new RuntimeException("no input-view available for the given Field");
-    }
-
-    /**
-     * Shortcut function, builds an HTML group cotaining a label and input.
-     *
-     * @param Field       $field
-     * @param string|null $label      label text (optional)
-     * @param array       $input_attr map of HTML attributes for the input (optional)
-     * @param array       $group_attr map of HTML attributes for the group (optional)
-     *
-     * @return string
-     */
-    public function inputGroup(Field $field, $label = null, array $input_attr = array(), $group_attr = array())
-    {
-        return
-            $this->group($field, $group_attr)
-            . $this->label($field, $label)
-            . $this->input($field, $input_attr)
-            . $this->endGroup();
-    }
-
-    /**
-     * Builds an HTML div with state-classes, containing a rendered input.
-     *
-     * @param Field $field
-     * @param array $input_attr attributes for the generated input
-     * @param array $div_attr   attributes for the wrapper div
-     *
-     * @return string HTML
-     */
-    public function inputDiv(Field $field, array $input_attr = array(), $div_attr = array())
-    {
-        return $this->div($field, $this->input($field, $input_attr), $div_attr);
-    }
-
-    /**
      * Builds an HTML div with state-classes, containing the given HTML.
      *
-     * @param Field  $field
-     * @param string $html inner HTML for the generated div
-     * @param array  $attr additional attributes for the div
+     * @param FieldInterface $field
+     * @param string         $html inner HTML for the generated div
+     * @param array          $attr additional attributes for the div
      *
      * @return string HTML
      */
-    public function div(Field $field, $html, array $attr = array())
+    public function divFor(FieldInterface $field, $html, array $attr = [])
     {
-        return $this->tag('div', $this->merge($this->state($field), $attr), $html);
+        return $this->tag('div', $this->mergeAttrs($this->getAttrs($field), $attr), $html);
     }
 
     /**
-     * Build an HTML <label for="id" /> tag
+     * Build a `<label for="id" />` tag
      *
-     * @param Field       $field
-     * @param string|null $label label text (optional)
-     * @param array       $attr  map of HTML attributes
+     * @param string $for   target element ID
+     * @param string $label label text
+     * @param array  $attr  map of HTML attributes
      *
      * @return string
      *
-     * @see Field::$label
+     * @see labelFor()
      */
-    public function label(Field $field, $label = null, array $attr = array())
+    public function label($for, $label, $attr = [])
     {
-        $attr = $this->merge(array('class' => $this->label_class), $attr);
+        return $this->tag(
+            'label',
+            $attr + [
+                'for' => $for,
+            ],
+            $this->softEscape($label . $this->label_suffix)
+        );
+    }
 
-        $id = $this->createId($field);
+    /**
+     * Build an HTML `<label for="id" />` tag
+     *
+     * @param FieldInterface $field
+     * @param string|null    $label label text (optional)
+     * @param array          $attr  map of HTML attributes
+     *
+     * @return string
+     *
+     * @see Field::getLabel()
+     *
+     * @throws RuntimeException if a label cannot be produced
+     */
+    public function labelFor(FieldInterface $field, $label = null, array $attr = [])
+    {
+        $attr = $this->mergeAttrs(['class' => $this->label_class], $attr);
+
+        $id = $this->getId($field);
 
         if ($id === null) {
             throw new RuntimeException("cannot produce a label when FormHelper::\$id_prefix is NULL");
@@ -536,16 +698,16 @@ class InputRenderer
             $label = $this->getLabel($field);
 
             if ($label === null) {
-                throw new RuntimeException("cannot produce a label when Field::\$label is NULL");
+                throw new RuntimeException("the given Field has no defined label");
             }
         }
 
         return $this->tag(
             'label',
-            $attr + array(
+            $attr + [
                 'for' => $id,
-            ),
-            $this->softEncode($label . $this->label_suffix)
+            ],
+            $this->softEscape($label . $this->label_suffix)
         );
     }
 }
