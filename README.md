@@ -3,6 +3,7 @@ mindplay/kissform
 
 Model-driven form rendering and input validation.
 
+[![PHP Version](https://img.shields.io/badge/php-5.5%2B-blue.svg)](https://packagist.org/packages/mindplay/kissform)
 [![Build Status](https://travis-ci.org/mindplay-dk/kissform.svg?branch=master)](https://travis-ci.org/mindplay-dk/kissform)
 [![Code Coverage](https://scrutinizer-ci.com/g/mindplay-dk/kissform/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mindplay-dk/kissform/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mindplay-dk/kissform/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mindplay-dk/kissform/?branch=master)
