@@ -3,6 +3,10 @@ mindplay/kissform
 
 Model-driven form rendering and input validation.
 
+[![Build Status](https://travis-ci.org/mindplay-dk/kissform.svg?branch=master)](https://travis-ci.org/mindplay-dk/kissform)
+[![Code Coverage](https://scrutinizer-ci.com/g/mindplay-dk/kissform/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mindplay-dk/kissform/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mindplay-dk/kissform/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mindplay-dk/kissform/?branch=master)
+
 Model-driven means it's driven by models - that means, step one is building
 a model that describes details of the rendered inputs on the form, and how
 the input gets validated.
