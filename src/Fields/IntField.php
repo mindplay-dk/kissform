@@ -72,9 +72,7 @@ class IntField extends TextField
     public function createValidators()
     {
         $validators = parent::createValidators();
-        
-        $validators[] = new CheckInt();
-        
+
         if ($this->min_value !== null) {
             if ($this->max_value !== null) {
                 $validators[] = new CheckRange($this->min_value, $this->max_value);
@@ -83,8 +81,10 @@ class IntField extends TextField
             }
         } else if ($this->max_value !== null) {
             $validators[] = new CheckMaxValue($this->max_value);
+        } else {
+            $validators[] = new CheckInt();
         }
-
+        
         return $validators;
     }
 }
