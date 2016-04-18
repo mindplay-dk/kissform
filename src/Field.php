@@ -60,7 +60,7 @@ abstract class Field implements FieldInterface
 
     public function getLabel()
     {
-        return $this->label; // TODO auto-generate label from Field Name?
+        return $this->label;
     }
 
     public function getPlaceholder()
