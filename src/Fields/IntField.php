@@ -13,6 +13,8 @@ use UnexpectedValueException;
 
 /**
  * This class provides information about an integer field.
+ * 
+ * TODO extract into NumericField base class with $allow_float property, refactor validation, adjust HTML5 attributes
  */
 class IntField extends TextField
 {
