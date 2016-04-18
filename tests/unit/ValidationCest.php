@@ -16,7 +16,7 @@ use mindplay\kissform\Validators\CheckMinLength;
 use mindplay\kissform\Validators\CheckMinValue;
 use mindplay\kissform\Validators\CheckRange;
 use mindplay\kissform\Validators\CheckAccept;
-use mindplay\kissform\Validators\CheckDateTime;
+use mindplay\kissform\Validators\CheckParser;
 use mindplay\kissform\Validators\CheckEmail;
 use mindplay\kissform\Validators\CheckSameValue;
 use mindplay\kissform\Validators\CheckInt;
@@ -191,8 +191,8 @@ class ValidationCest
     {
         $field = new DateTimeField('value', 'UTC', 'Y-m-d');
 
-        $validator = new CheckDateTime($field);
-
+        $validator = new CheckParser($field, "error message");
+        
         $I->testValidator(
             $field,
             $validator,

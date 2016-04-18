@@ -10,9 +10,11 @@ use mindplay\kissform\InputValidation;
 use mindplay\lang;
 
 /**
- * Validate date or date/time input in the format specified by the given {@see DateTimeStringField}.
+ * Validate a Field by attempting to parse the input value.
+ *
+ * This is useful for e.g. date or date/time input which may be parsed by {@see DateTimeStringField}.
  */
-class CheckDateTime implements ValidatorInterface
+class CheckParser implements ValidatorInterface
 {
     /**
      * @var ParserInterface
@@ -20,15 +22,15 @@ class CheckDateTime implements ValidatorInterface
     private $parser;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $error;
 
     /**
-     * @param ParserInterface $parser the input parser required to parse the input
-     * @param string|null     $error  optional custom error message
+     * @param ParserInterface $parser the InputParser (usually a Field) which should attempt to parse the input
+     * @param string          $error  error message template (the "{field}" token will be substituted)
      */
-    public function __construct(ParserInterface $parser, $error = null)
+    public function __construct(ParserInterface $parser, $error)
     {
         $this->parser = $parser;
         $this->error = $error;
@@ -43,10 +45,7 @@ class CheckDateTime implements ValidatorInterface
         }
 
         if ($this->parser->parseInput($input) === null) {
-            $model->setError(
-                $field,
-                $this->error ?: lang::text("mindplay/kissform", "datetime", ["field" => $validation->getLabel($field)])
-            );
+            $model->setError($field, strtr($this->error, ["field" => $validation->getLabel($field)]));
         }
     }
 }

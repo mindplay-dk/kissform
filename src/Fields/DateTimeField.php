@@ -8,7 +8,8 @@ use mindplay\kissform\Facets\ParserInterface;
 use mindplay\kissform\Fields\Base\TimeZoneAwareField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
-use mindplay\kissform\Validators\CheckDateTime;
+use mindplay\kissform\Validators\CheckParser;
+use mindplay\lang;
 use UnexpectedValueException;
 
 /**
@@ -120,8 +121,8 @@ class DateTimeField extends TimeZoneAwareField implements ParserInterface
     {
         $validators = parent::createValidators();
 
-        $validators[] = new CheckDateTime($this);
-
+        $validators[] = new CheckParser($this, lang::text("mindplay/kissform", "datetime"));
+        
         return $validators;
     }
 }

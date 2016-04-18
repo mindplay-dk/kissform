@@ -15,7 +15,7 @@ use mindplay\kissform\Fields\SelectField;
 use mindplay\kissform\Fields\TextArea;
 use mindplay\kissform\Fields\TextField;
 use mindplay\kissform\Validators\CheckAccept;
-use mindplay\kissform\Validators\CheckDateTime;
+use mindplay\kissform\Validators\CheckParser;
 use mindplay\kissform\Validators\CheckEmail;
 use mindplay\kissform\Validators\CheckInt;
 use mindplay\kissform\Validators\CheckLength;
@@ -283,14 +283,14 @@ class FieldConstraintCest
         $field->setRequired(false);
 
         $I->expectFieldConstraints($field, [
-            CheckDateTime::class => ['parser' => $field]
+            CheckParser::class => ['parser' => $field]
         ]);
 
         $field->setRequired(true);
 
         $I->expectFieldConstraints($field, [
             CheckRequired::class => [],
-            CheckDateTime::class => ['parser' => $field]
+            CheckParser::class   => ['parser' => $field]
         ]);
     }
 }
