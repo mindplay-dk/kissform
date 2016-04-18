@@ -21,7 +21,7 @@ use mindplay\kissform\Validators\CheckRequired;
  * setValue() overrides should throw an {@see InvalidArgumentException}
  * if the given value is unacceptable.
  *
- * TODO consistent use of mutator methods for all public properties of all Field types?
+ * TODO HTML5 input attributes
  */
 abstract class Field implements FieldInterface
 {
