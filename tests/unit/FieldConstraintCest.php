@@ -8,17 +8,22 @@ use mindplay\kissform\Fields\DateSelectField;
 use mindplay\kissform\Fields\DateTimeField;
 use mindplay\kissform\Fields\EmailField;
 use mindplay\kissform\Fields\HiddenField;
+use mindplay\kissform\Fields\IntField;
 use mindplay\kissform\Fields\PasswordField;
 use mindplay\kissform\Fields\RadioGroup;
 use mindplay\kissform\Fields\SelectField;
 use mindplay\kissform\Fields\TextArea;
 use mindplay\kissform\Fields\TextField;
-use mindplay\kissform\Validators\CheckLength;
-use mindplay\kissform\Validators\CheckMaxLength;
-use mindplay\kissform\Validators\CheckMinLength;
 use mindplay\kissform\Validators\CheckAccept;
 use mindplay\kissform\Validators\CheckDateTime;
 use mindplay\kissform\Validators\CheckEmail;
+use mindplay\kissform\Validators\CheckInt;
+use mindplay\kissform\Validators\CheckLength;
+use mindplay\kissform\Validators\CheckMaxLength;
+use mindplay\kissform\Validators\CheckMaxValue;
+use mindplay\kissform\Validators\CheckMinLength;
+use mindplay\kissform\Validators\CheckMinValue;
+use mindplay\kissform\Validators\CheckRange;
 use mindplay\kissform\Validators\CheckRequired;
 use mindplay\kissform\Validators\CheckSelected;
 use UnitTester;
@@ -51,6 +56,75 @@ class FieldConstraintCest
         $field = new TextArea("value");
 
         $this->checkTextFieldConstraints($I, $field);
+    }
+
+    public function createConstraintsForIntField(UnitTester $I)
+    {
+        $field = new IntField("value");
+
+        $I->expectFieldConstraints($field, [
+            CheckInt::class => [],
+        ]);
+
+        $field->setRequired(true);
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckInt::class      => [],
+        ]);
+
+        $field->min_length = 10;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class  => [],
+            CheckMinLength::class => ['min' => 10],
+            CheckInt::class => [],
+        ]);
+
+        $field->max_length = 20;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class => [],
+        ]);
+
+        $field->min_value = 1;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
+            CheckMinValue::class => ['min' => 1],
+        ]);
+
+        $field->max_value = 99;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
+            CheckRange::class    => ['min' => 1, 'max' => 99],
+        ]);
+
+        $field->min_value = null;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
+            CheckMaxValue::class => ['max' => 99],
+        ]);
+
+        $field->max_value = null;
+
+        $field->min_length = null;
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class  => [],
+            CheckMaxLength::class => ['max' => 20],
+            CheckInt::class => [],
+        ]);
     }
 
     public function createConstraintsForEmailField(UnitTester $I)

@@ -35,7 +35,7 @@ class CheckInt implements ValidatorInterface
         }
 
         if (filter_var($input, FILTER_VALIDATE_INT) === false) {
-            $model->setError($field, $this->error ?: lang::text("mindplay/kissform", "int", ["field" => $validation->getTitle($field)]));
+            $model->setError($field, $this->error ?: lang::text("mindplay/kissform", "int", ["field" => $validation->getLabel($field)]));
         }
     }
 }

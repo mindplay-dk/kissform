@@ -32,13 +32,13 @@ class InputRendererCest
         $I->assertSame('text', $form->getName($field), 'name without prefix');
         $I->assertSame(null, $form->getId($field), 'no id attribute when $id_prefix is NULL');
 
-        $form->name_prefix = 'form';
+        $form->collection_name = 'form';
         $form->id_prefix = 'form';
 
         $I->assertSame('form[text]', $form->getName($field), 'name with prefix');
         $I->assertSame('form-text', $form->getId($field), 'id with defined prefix');
 
-        $form->name_prefix = ['form', 'subform'];
+        $form->collection_name = ['form', 'subform'];
         $form->id_prefix = 'form-subform';
         $I->assertSame('form[subform][text]', $form->getName($field), 'renderer name with double prefix');
         $I->assertSame('form-subform-text', $form->getId($field), 'id for renderer name with double prefix');
@@ -60,11 +60,11 @@ class InputRendererCest
             $child->setValue($model, 'test');
             $model->setError($child, 'whoops');
 
-            $I->assertSame($renderer->name_prefix, ['form', 'parent'], 'name prefix added');
+            $I->assertSame($renderer->collection_name, ['form', 'parent'], 'name prefix added');
             $I->assertSame($renderer->id_prefix, 'form-parent', 'name prefix added');
         });
 
-        $I->assertSame('form', $renderer->name_prefix, 'name prefix restored');
+        $I->assertSame('form', $renderer->collection_name, 'name prefix restored');
         $I->assertSame('form', $renderer->id_prefix, 'id prefix restored');
 
         $I->assertSame(['parent' => ['child' => 'test']], $renderer->model->input,
@@ -207,5 +207,31 @@ class InputRendererCest
 
         $I->assertSame('<div class="form-group"><label class="control-label" for="form-hello">Hello!</label><input class="form-control" id="form-hello" name="form[hello]" type="text" value="World"/></div>',
             $form->renderGroup($field));
+    }
+
+    public function overridePlaceholders(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $field = new TextField("test");
+
+        $field->setPlaceholder("Hello");
+
+        $form = new InputRenderer();
+
+        $I->assertSame('<input class="form-control" name="test" placeholder="Hello" type="text"/>', $form->render($field));
+    }
+
+    public function overrideRequired(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $field = new TextField("test");
+
+        $form = new InputRenderer();
+        
+        $form->setRequired($field);
+
+        $I->assertSame('<input class="form-control" name="test" type="text"/>', $form->render($field));
     }
 }

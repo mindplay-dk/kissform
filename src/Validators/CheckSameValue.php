@@ -45,7 +45,7 @@ class CheckSameValue implements ValidatorInterface
         if ($model->getInput($field) !== $model->getInput($this->primary_field)) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "confirm", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "confirm", ["field" => $validation->getLabel($field)])
             );
         }
     }

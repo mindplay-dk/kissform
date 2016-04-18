@@ -45,7 +45,7 @@ class CheckDateTime implements ValidatorInterface
         if ($this->parser->parseInput($input) === null) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "datetime", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "datetime", ["field" => $validation->getLabel($field)])
             );
         }
     }

@@ -43,9 +43,9 @@ class InputRenderer
     public $model;
 
     /**
-     * @var string|string[]|null form element name-attribute prefixes
+     * @var string|string[]|null form element collection name(s)
      */
-    public $name_prefix;
+    public $collection_name;
 
     /**
      * @var string|null form element id-attribute prefix (or null, to bypass id-attribute generation)
@@ -144,18 +144,18 @@ class InputRenderer
     ];
 
     /**
-     * @param InputModel|array|null $model       input model, or (possibly nested) input array (e.g. $_GET or $_POST)
-     * @param string|string[]|null  $name_prefix base name(s) for inputs, e.g. 'myform' or ['myform', '123'] etc.
-     * @param string|null           $id_prefix   base id for inputs, e.g. 'myform' or 'myform-123', etc.
+     * @param InputModel|array|null $model           input model, or (possibly nested) input array (e.g. $_GET or $_POST)
+     * @param string|string[]|null  $collection_name collection name(s) for inputs, e.g. 'myform' or ['myform', '123'] etc.
+     * @param string|null           $id_prefix       base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
-    public function __construct($model = null, $name_prefix = null, $id_prefix = null)
+    public function __construct($model = null, $collection_name = null, $id_prefix = null)
     {
         $this->model = InputModel::create($model);
-        $this->name_prefix = $name_prefix;
+        $this->collection_name = $collection_name;
         $this->id_prefix = $id_prefix === null
-            ? ($name_prefix === null
+            ? ($collection_name === null
                 ? null
-                : implode('-', (array) $this->name_prefix))
+                : implode('-', (array) $this->collection_name))
             : $id_prefix;
     }
 
@@ -216,7 +216,7 @@ class InputRenderer
      */
     public function getName(FieldInterface $field)
     {
-        $names = (array) $this->name_prefix;
+        $names = (array) $this->collection_name;
         $names[] = $field->getName();
 
         return $names[0] . (count($names) > 1 ? '[' . implode('][', array_slice($names, 1)) . ']' : '');
@@ -345,7 +345,7 @@ class InputRenderer
     public function visit($field, $func)
     {
         $model = $this->model;
-        $name_prefix = $this->name_prefix;
+        $name_prefix = $this->collection_name;
         $id_prefix = $this->id_prefix;
 
         $key = $field instanceof FieldInterface
@@ -353,7 +353,7 @@ class InputRenderer
             : (string) $field;
 
         $this->model = InputModel::create(@$model->input[$key], $model->getError($key));
-        $this->name_prefix = array_merge((array) $this->name_prefix, [$key]);
+        $this->collection_name = array_merge((array) $this->collection_name, [$key]);
         $this->id_prefix = $this->id_prefix
             ? $this->id_prefix . '-' . $key
             : null;
@@ -371,7 +371,7 @@ class InputRenderer
         }
 
         $this->model = $model;
-        $this->name_prefix = $name_prefix;
+        $this->collection_name = $name_prefix;
         $this->id_prefix = $id_prefix;
     }
 

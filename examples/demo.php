@@ -71,7 +71,7 @@ if (isset($_POST['form'])) {
     $_SESSION[__FILE__] = $model;
 
     $validator = new InputValidation($model);
-    
+
     $validator->check([
         $t->token,
         $t->first_name,

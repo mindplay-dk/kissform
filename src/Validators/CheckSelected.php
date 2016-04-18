@@ -47,7 +47,7 @@ class CheckSelected implements ValidatorInterface
         if (! in_array($input, $this->options)) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "selected", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "selected", ["field" => $validation->getLabel($field)])
             );
         }
     }

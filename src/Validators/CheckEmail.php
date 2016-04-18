@@ -37,7 +37,7 @@ class CheckEmail implements ValidatorInterface
         if (filter_var($input, FILTER_VALIDATE_EMAIL) === false) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "email", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "email", ["field" => $validation->getLabel($field)])
             );
         }
     }

@@ -46,7 +46,7 @@ class CheckMinLength implements ValidatorInterface
         if ($length < $this->min) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "minLength", ["field" => $validation->getTitle($field), "min" => $this->min])
+                $this->error ?: lang::text("mindplay/kissform", "minLength", ["field" => $validation->getLabel($field), "min" => $this->min])
             );
         }
     }

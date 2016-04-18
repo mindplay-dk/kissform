@@ -52,7 +52,7 @@ class CheckRange extends CheckNumeric
         if ($input < $this->min || $input > $this->max) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "range", ["field" => $validation->getTitle($field), "min" => $this->min, "max" => $this->max])
+                $this->error ?: lang::text("mindplay/kissform", "range", ["field" => $validation->getLabel($field), "min" => $this->min, "max" => $this->max])
             );
         }
     }

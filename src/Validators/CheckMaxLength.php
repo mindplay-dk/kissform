@@ -46,7 +46,7 @@ class CheckMaxLength implements ValidatorInterface
         if ($length > $this->max) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "maxLength", ["field" => $validation->getTitle($field), "max" => $this->max])
+                $this->error ?: lang::text("mindplay/kissform", "maxLength", ["field" => $validation->getLabel($field), "max" => $this->max])
             );
         }
     }

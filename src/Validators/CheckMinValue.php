@@ -45,7 +45,7 @@ class CheckMinValue extends CheckNumeric
         if ($input < $this->min) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "minValue", ["field" => $validation->getTitle($field), "min" => $this->min])
+                $this->error ?: lang::text("mindplay/kissform", "minValue", ["field" => $validation->getLabel($field), "min" => $this->min])
             );
         }
     }

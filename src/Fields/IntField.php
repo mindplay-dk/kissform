@@ -4,6 +4,7 @@ namespace mindplay\kissform\Fields;
 
 use InvalidArgumentException;
 use mindplay\kissform\InputModel;
+use mindplay\kissform\Validators\CheckInt;
 use mindplay\kissform\Validators\CheckMaxValue;
 use mindplay\kissform\Validators\CheckMinValue;
 use mindplay\kissform\Validators\CheckRange;
@@ -71,7 +72,9 @@ class IntField extends TextField
     public function createValidators()
     {
         $validators = parent::createValidators();
-
+        
+        $validators[] = new CheckInt();
+        
         if ($this->min_value !== null) {
             if ($this->max_value !== null) {
                 $validators[] = new CheckRange($this->min_value, $this->max_value);

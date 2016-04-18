@@ -46,10 +46,10 @@ class InputValidation
      *
      * @return string label
      *
-     * @see setTitle()
+     * @see setLabel()
      * @see Field::getLabel()
      */
-    public function getTitle(FieldInterface $field)
+    public function getLabel(FieldInterface $field)
     {
         return array_key_exists($field->getName(), $this->titles)
             ? $this->titles[$field->getName()]
@@ -64,9 +64,9 @@ class InputValidation
      *
      * @return $this
      *
-     * @see getTitle()
+     * @see getLabel()
      */
-    public function setTitle(FieldInterface $field, $title)
+    public function setLabel(FieldInterface $field, $title)
     {
         $this->titles[$field->getName()] = $title;
 

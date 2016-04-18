@@ -37,7 +37,7 @@ class CheckNumeric implements ValidatorInterface
         if (filter_var($input, FILTER_VALIDATE_FLOAT) === false) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "float", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "float", ["field" => $validation->getLabel($field)])
             );
         }
     }

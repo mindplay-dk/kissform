@@ -24,6 +24,7 @@ use mindplay\kissform\Validators\CheckNumeric;
 use mindplay\kissform\Validators\CheckRequired;
 use mindplay\kissform\Validators\CheckSelected;
 use mindplay\kissform\Validators\CheckPattern;
+use mindplay\lang;
 use UnitTester;
 
 class ValidationCest
@@ -219,5 +220,20 @@ class ValidationCest
             ['a1', 'abc123', '', null],
             ['123abc', '_']
         );
+    }
+
+    public function overrideLabel(UnitTester $I)
+    {
+        $field = new IntField("test");
+
+        $model = InputModel::create(["test" => "not_a_number"]);
+
+        $validator = new InputValidation($model);
+        
+        $validator->setLabel($field, "Blub");
+        
+        $validator->check($field);
+        
+        $I->assertSame($model->getError($field), lang::text("mindplay/kissform", "int", ["field" => "Blub"]));
     }
 }

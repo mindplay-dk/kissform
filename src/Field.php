@@ -20,6 +20,8 @@ use mindplay\kissform\Validators\CheckRequired;
  *
  * setValue() overrides should throw an {@see InvalidArgumentException}
  * if the given value is unacceptable.
+ *
+ * TODO consistent use of mutator methods for all public properties of all Field types?
  */
 abstract class Field implements FieldInterface
 {
@@ -58,7 +60,7 @@ abstract class Field implements FieldInterface
 
     public function getLabel()
     {
-        return $this->label;
+        return $this->label; // TODO auto-generate label from Field Name?
     }
 
     public function getPlaceholder()

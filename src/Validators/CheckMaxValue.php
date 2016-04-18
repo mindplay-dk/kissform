@@ -41,7 +41,7 @@ class CheckMaxValue extends CheckNumeric
         if ($input > $this->max) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "maxValue", ["field" => $validation->getTitle($field), "max" => $this->max])
+                $this->error ?: lang::text("mindplay/kissform", "maxValue", ["field" => $validation->getLabel($field), "max" => $this->max])
             );
         }
     }

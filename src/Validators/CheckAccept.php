@@ -40,7 +40,7 @@ class CheckAccept implements ValidatorInterface
         if ($value != $this->checked_value) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "checked", ["field" => $validation->getTitle($field)])
+                $this->error ?: lang::text("mindplay/kissform", "checked", ["field" => $validation->getLabel($field)])
             );
         }
     }
