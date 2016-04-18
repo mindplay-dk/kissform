@@ -223,9 +223,9 @@ class InputRendererCest
 
         $field = new TextField("test");
 
-        $field->setPlaceholder("Hello");
-
         $form = new InputRenderer();
+
+        $form->setPlaceholder($field, "Hello");
 
         $I->assertSame('<input class="form-control" name="test" placeholder="Hello" type="text"/>', $form->render($field));
     }
