@@ -196,6 +196,14 @@ class InputRendererCest
         $I->assertSame('<label class="control-label" for="form-text">Nombre:</label>', $form->labelFor($field, "Nombre"));
     }
 
+    public function buildLabel(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $I->assertSame('<label class="control-label" for="foo">Hello</label>', $form->label("foo", "Hello"));
+        $I->assertSame('<label class="control-label stuff" for="foo">Hello</label>', $form->label("foo", "Hello", ["class" => "stuff"]));
+    }
+
     public function buildLabeledInputGroups(UnitTester $I)
     {
         $form = new InputRenderer(null, 'form');

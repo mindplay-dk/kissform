@@ -664,9 +664,13 @@ class InputRenderer
     {
         return $this->tag(
             'label',
-            $attr + [
-                'for' => $for,
-            ],
+            $this->mergeAttrs(
+                [
+                    'for' => $for,
+                    'class' => $this->label_class
+                ],
+                $attr
+            ),
             $this->softEscape($label . $this->label_suffix)
         );
     }
@@ -686,8 +690,6 @@ class InputRenderer
      */
     public function labelFor(FieldInterface $field, $label = null, array $attr = [])
     {
-        $attr = $this->mergeAttrs(['class' => $this->label_class], $attr);
-
         $id = $this->getId($field);
 
         if ($id === null) {
@@ -702,12 +704,6 @@ class InputRenderer
             }
         }
 
-        return $this->tag(
-            'label',
-            $attr + [
-                'for' => $id,
-            ],
-            $this->softEscape($label . $this->label_suffix)
-        );
+        return $this->label($id, $label);
     }
 }
