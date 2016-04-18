@@ -223,8 +223,6 @@ class InputRendererCest
 
         $field = new TextField("test");
 
-        $form = new InputRenderer();
-
         $form->setPlaceholder($field, "Hello");
 
         $I->assertSame('<input class="form-control" name="test" placeholder="Hello" type="text"/>', $form->render($field));
@@ -236,10 +234,15 @@ class InputRendererCest
 
         $field = new TextField("test");
 
-        $form = new InputRenderer();
-        
         $form->setRequired($field);
 
-        $I->assertSame('<input class="form-control" name="test" type="text"/>', $form->render($field));
+        $I->assertSame('<div class="required"><input class="form-control" name="test" type="text"/></div>', $form->renderDiv($field));
+    }
+
+    public function buildInput(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $I->assertSame('<input data-bat="baz" name="foo" type="hidden" value="bar"/>', $form->input("hidden", "foo", "bar", ["data-bat" => "baz"]));
     }
 }
