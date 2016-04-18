@@ -8,6 +8,7 @@ use mindplay\kissform\Fields\DateTimeField;
 use mindplay\kissform\Fields\EmailField;
 use mindplay\kissform\Fields\HiddenField;
 use mindplay\kissform\Fields\InlineRadioGroup;
+use mindplay\kissform\Fields\IntField;
 use mindplay\kissform\Fields\PasswordField;
 use mindplay\kissform\Fields\RadioGroup;
 use mindplay\kissform\Fields\SelectField;
@@ -50,6 +51,13 @@ class FieldRenderCest
 
         $I->assertSame('<input class="form-control" maxlength="50" name="value" placeholder="hello" type="text" value="this &amp; that"/>',
             $form->render($field), 'input with value-attribute escaped as HTML');
+
+        $field = new TextField("value");
+
+        $field->setPattern('[A-Z]{2}', 'Enter two-letter ISO language code');
+
+        $I->assertSame('<input class="form-control" data-pattern-error="Enter two-letter ISO language code" name="value" pattern="[A-Z]{2}" type="text" value="this &amp; that"/>',
+            $form->render($field));
     }
 
     public function renderPasswordField(UnitTester $I)
@@ -200,6 +208,20 @@ class FieldRenderCest
 
         $I->assertSame('<label class="radio-inline"><input checked class="foo" name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input class="foo" name="value" type="radio" value="2"/> Option Two</label>',
             $form->render($field, ['class' => 'foo']));
+    }
+
+    public function renderIntField(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $field = new IntField("value");
+
+        $I->assertSame('<input class="form-control" name="value" type="number"/>', $form->render($field));
+
+        $field->min_value = 1;
+        $field->max_value = 99;
+
+        $I->assertSame('<input class="form-control" max="99" min="1" name="value" type="number"/>', $form->render($field));
     }
 
     public function renderDateTimeField(UnitTester $I)

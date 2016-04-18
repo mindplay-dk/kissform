@@ -136,7 +136,7 @@ class InputRendererCest
         $I->assertSame('<div class="required has-error" data-foo="bar">foo &amp; bar</div>',
             $form->divFor($field, 'foo &amp; bar', ['data-foo' => 'bar']));
 
-        $I->assertSame('<div class="required has-error foo bar"><input class="form-control foo" name="text" type="text"/></div>',
+        $I->assertSame('<div class="required has-error foo bar"><input class="form-control foo" name="text" required type="text"/></div>',
             $form->renderDiv($field, ['class' => 'foo'], ['class' => ['foo', 'bar']]));
     }
 
@@ -236,7 +236,7 @@ class InputRendererCest
 
         $form->setRequired($field);
 
-        $I->assertSame('<div class="required"><input class="form-control" name="test" type="text"/></div>', $form->renderDiv($field));
+        $I->assertSame('<div class="required"><input class="form-control" name="test" required type="text"/></div>', $form->renderDiv($field));
     }
 
     public function buildInput(UnitTester $I)

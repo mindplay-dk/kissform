@@ -23,6 +23,7 @@ use mindplay\kissform\Validators\CheckMaxLength;
 use mindplay\kissform\Validators\CheckMaxValue;
 use mindplay\kissform\Validators\CheckMinLength;
 use mindplay\kissform\Validators\CheckMinValue;
+use mindplay\kissform\Validators\CheckPattern;
 use mindplay\kissform\Validators\CheckRange;
 use mindplay\kissform\Validators\CheckRequired;
 use mindplay\kissform\Validators\CheckSelected;
@@ -265,6 +266,15 @@ class FieldConstraintCest
         $I->expectFieldConstraints($field, [
             CheckRequired::class  => [],
             CheckMaxLength::class => ['max' => 5]
+        ]);
+
+        $field->max_length = null;
+
+        $field->setPattern("[A-Z]{2}", "Enter two-letter country code");
+
+        $I->expectFieldConstraints($field, [
+            CheckRequired::class => [],
+            CheckPattern::class  => ['pattern' => '/^[A-Z]{2}$/'],
         ]);
     }
 

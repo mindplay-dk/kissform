@@ -552,10 +552,10 @@ class InputRenderer
     }
 
     /**
-     * Build an HTML input-tag for a given Field
+     * Build an HTML5 input-tag for a given Field
      *
      * @param FieldInterface $field
-     * @param string         $type HTML input type-attribute (e.g. "text", "password", etc.)
+     * @param string         $type HTML5 input type-attribute (e.g. "text", "password", etc.)
      * @param array          $attr map of HTML attributes
      *
      * @return string
@@ -571,6 +571,7 @@ class InputRenderer
                     'class'       => $this->input_class,
                     'value'       => $this->model->getInput($field),
                     'type'        => $type,
+                    'required'    => $this->isRequired($field),
                     'placeholder' => @$attr['placeholder'] ?: $this->getPlaceholder($field),
                 ],
                 $attr

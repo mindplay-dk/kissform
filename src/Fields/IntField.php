@@ -4,6 +4,7 @@ namespace mindplay\kissform\Fields;
 
 use InvalidArgumentException;
 use mindplay\kissform\InputModel;
+use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckInt;
 use mindplay\kissform\Validators\CheckMaxValue;
 use mindplay\kissform\Validators\CheckMinValue;
@@ -25,6 +26,28 @@ class IntField extends TextField
      */
     public $max_value;
 
+    /**
+     * {@inheritdoc}
+     */
+    public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
+    {
+        $defaults = [];
+
+        if ($this->max_length) {
+            $defaults['maxlength'] = $this->max_length;
+        }
+
+        if ($this->min_value) {
+            $defaults['min'] = $this->min_value;
+        }
+
+        if ($this->max_value) {
+            $defaults['max'] = $this->max_value;
+        }
+
+        return $renderer->inputFor($this, 'number', $attr + $defaults);
+    }
+    
     /**
      * @param InputModel $model
      *
@@ -84,7 +107,7 @@ class IntField extends TextField
         } else {
             $validators[] = new CheckInt();
         }
-        
+
         return $validators;
     }
 }

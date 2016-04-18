@@ -20,8 +20,6 @@ use mindplay\kissform\Validators\CheckRequired;
  *
  * setValue() overrides should throw an {@see InvalidArgumentException}
  * if the given value is unacceptable.
- *
- * TODO HTML5 input attributes
  */
 abstract class Field implements FieldInterface
 {

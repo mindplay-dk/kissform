@@ -8,6 +8,7 @@ use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckLength;
 use mindplay\kissform\Validators\CheckMaxLength;
 use mindplay\kissform\Validators\CheckMinLength;
+use mindplay\kissform\Validators\CheckPattern;
 
 /**
  * This class provides information about a text field, e.g. a plain
@@ -26,11 +27,42 @@ class TextField extends Field
     public $max_length;
 
     /**
+     * @var string|null
+     */
+    protected $pattern;
+
+    /**
+     * @var string|null
+     */
+    protected $pattern_error;
+
+    /**
+     * @param string $pattern regular expression pattern (optional; no delimiters, modifiers or anchors)
+     * @param string $error   error message to apply on pattern mismatch
+     */
+    public function setPattern($pattern, $error)
+    {
+        $this->pattern = $pattern;
+        $this->pattern_error = $error;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
     {
-        return $renderer->inputFor($this, 'text', array_merge(['maxlength' => $this->max_length], $attr));
+        $defaults = [];
+
+        if ($this->max_length) {
+            $defaults['maxlength'] = $this->max_length;
+        }
+
+        if ($this->pattern) {
+            $defaults['pattern'] = $this->pattern;
+            $defaults['data-pattern-error'] = $this->pattern_error;
+        }
+        
+        return $renderer->inputFor($this, 'text', $attr + $defaults);
     }
 
     /**
@@ -48,6 +80,10 @@ class TextField extends Field
             }
         } else if ($this->max_length !== null) {
             $validators[] = new CheckMaxLength($this->max_length);
+        }
+
+        if ($this->pattern) {
+            $validators[] = new CheckPattern("/^{$this->pattern}$/", $this->pattern_error);
         }
 
         return $validators;
