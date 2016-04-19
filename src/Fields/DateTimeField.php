@@ -121,7 +121,7 @@ class DateTimeField extends TimeZoneAwareField implements ParserInterface
     {
         $validators = parent::createValidators();
 
-        $validators[] = new CheckParser($this, lang::text("mindplay/kissform", "datetime"));
+        $validators[] = new CheckParser($this, "datetime");
         
         return $validators;
     }

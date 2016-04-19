@@ -191,7 +191,7 @@ class ValidationCest
     {
         $field = new DateTimeField('value', 'UTC', 'Y-m-d');
 
-        $validator = new CheckParser($field, "error message");
+        $validator = new CheckParser($field, "datetime");
         
         $I->testValidator(
             $field,

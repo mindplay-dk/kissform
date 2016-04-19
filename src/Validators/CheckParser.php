@@ -24,16 +24,16 @@ class CheckParser implements ValidatorInterface
     /**
      * @var string
      */
-    private $error;
+    private $error_id;
 
     /**
-     * @param ParserInterface $parser the InputParser (usually a Field) which should attempt to parse the input
-     * @param string          $error  error message template (the "{field}" token will be substituted)
+     * @param ParserInterface $parser   the InputParser (usually a Field) which should attempt to parse the input
+     * @param string          $error_id error message translation key
      */
-    public function __construct(ParserInterface $parser, $error)
+    public function __construct(ParserInterface $parser, $error_id)
     {
         $this->parser = $parser;
-        $this->error = $error;
+        $this->error_id = $error_id;
     }
 
     public function validate(FieldInterface $field, InputModel $model, InputValidation $validation)
@@ -45,7 +45,7 @@ class CheckParser implements ValidatorInterface
         }
 
         if ($this->parser->parseInput($input) === null) {
-            $model->setError($field, strtr($this->error, ["field" => $validation->getLabel($field)]));
+            $model->setError($field, lang::text("mindplay/kissform", $this->error_id, ["field" => $validation->getLabel($field)]));
         }
     }
 }
