@@ -95,6 +95,7 @@ class FieldConstraintCest
         $I->expectFieldConstraints($field, [
             CheckRequired::class => [],
             CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
             CheckMinValue::class => ['min' => 1],
         ]);
 
@@ -103,6 +104,7 @@ class FieldConstraintCest
         $I->expectFieldConstraints($field, [
             CheckRequired::class => [],
             CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
             CheckRange::class    => ['min' => 1, 'max' => 99],
         ]);
 
@@ -111,6 +113,7 @@ class FieldConstraintCest
         $I->expectFieldConstraints($field, [
             CheckRequired::class => [],
             CheckLength::class   => ['min' => 10, 'max' => 20],
+            CheckInt::class      => [],
             CheckMaxValue::class => ['max' => 99],
         ]);
 
