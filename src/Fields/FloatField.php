@@ -6,15 +6,14 @@ use InvalidArgumentException;
 use mindplay\kissform\Fields\Base\NumericField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
+use mindplay\kissform\Validators\CheckFloat;
 use mindplay\kissform\Validators\CheckInt;
 use UnexpectedValueException;
 
 /**
- * This class provides information about an integer field.
- * 
- * TODO extract into NumericField base class with $allow_float property, refactor validation, adjust HTML5 attributes
+ * This class provides information about a floating point field.
  */
-class IntField extends NumericField
+class FloatField extends NumericField
 {
     /**
      * {@inheritdoc}
@@ -22,16 +21,16 @@ class IntField extends NumericField
     public function renderInput(InputRenderer $renderer, InputModel $model, array $attr)
     {
         $pattern = $this->min_value === null || $this->min_value < 0
-            ? '-?\d*' // accept negative
-            : '\d*';
+            ? '-?\d*(\.(?=\d))?\d*' // accept negative
+            : '\d*(\.(?=\d))?\d*';
         
         return parent::renderInput($renderer, $model, $attr + ['pattern' => $pattern]);
     }
-    
+
     /**
      * @param InputModel $model
      *
-     * @return int|null
+     * @return float|null
      *
      * @throws UnexpectedValueException if unable to parse the input
      */
@@ -44,7 +43,7 @@ class IntField extends NumericField
         }
 
         if (is_numeric($input)) {
-            return (int) $input;
+            return (float) $input;
         }
 
         throw new UnexpectedValueException("unexpected input: {$input}");
@@ -52,7 +51,7 @@ class IntField extends NumericField
 
     /**
      * @param InputModel $model
-     * @param int|null   $value
+     * @param float|null $value
      *
      * @return void
      *
@@ -60,7 +59,7 @@ class IntField extends NumericField
      */
     public function setValue(InputModel $model, $value)
     {
-        if (is_int($value)) {
+        if (is_numeric($value)) {
             $model->setInput($this, (string) $value);
         } elseif ($value === null) {
             $model->setInput($this, null);
@@ -74,6 +73,6 @@ class IntField extends NumericField
      */
     protected function createTypeValidator()
     {
-        return new CheckInt();
+        return new CheckFloat();
     }
 }

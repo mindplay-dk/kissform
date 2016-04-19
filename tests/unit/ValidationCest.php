@@ -20,7 +20,7 @@ use mindplay\kissform\Validators\CheckParser;
 use mindplay\kissform\Validators\CheckEmail;
 use mindplay\kissform\Validators\CheckSameValue;
 use mindplay\kissform\Validators\CheckInt;
-use mindplay\kissform\Validators\CheckNumeric;
+use mindplay\kissform\Validators\CheckFloat;
 use mindplay\kissform\Validators\CheckRequired;
 use mindplay\kissform\Validators\CheckSelected;
 use mindplay\kissform\Validators\CheckPattern;
@@ -97,11 +97,11 @@ class ValidationCest
         );
     }
 
-    public function validateNumericInput(UnitTester $I)
+    public function validateFloatInput(UnitTester $I)
     {
         $I->testValidator(
             new IntField('value'),
-            new CheckNumeric(),
+            new CheckFloat(),
             ['0', '-1', '1', '123', '0.0', '-1.0', '-1.1', '123.4', '123.1', '', null],
             ['-', 'foo']
         );

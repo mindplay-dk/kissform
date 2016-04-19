@@ -17,12 +17,12 @@ use mindplay\kissform\Validators\CheckRange;
 abstract class NumericField extends TextField
 {
     /**
-     * @var int|null minimum value
+     * @var int|float|null minimum value
      */
     public $min_value;
 
     /**
-     * var int|null maximum value
+     * var int|float|null maximum value
      */
     public $max_value;
 

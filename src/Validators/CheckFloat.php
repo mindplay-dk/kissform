@@ -11,7 +11,7 @@ use mindplay\lang;
 /**
  * Validate numeric input, allowing floating point values.
  */
-class CheckNumeric implements ValidatorInterface
+class CheckFloat implements ValidatorInterface
 {
     /**
      * @var string|null

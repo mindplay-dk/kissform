@@ -10,7 +10,7 @@ use mindplay\lang;
 /**
  * Validate numerical value with a minimum.
  */
-class CheckMinValue extends CheckNumeric
+class CheckMinValue extends CheckFloat
 {
     /**
      * @var int|float

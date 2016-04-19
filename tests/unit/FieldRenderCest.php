@@ -6,6 +6,7 @@ use mindplay\kissform\Fields\CheckboxField;
 use mindplay\kissform\Fields\DateSelectField;
 use mindplay\kissform\Fields\DateTimeField;
 use mindplay\kissform\Fields\EmailField;
+use mindplay\kissform\Fields\FloatField;
 use mindplay\kissform\Fields\HiddenField;
 use mindplay\kissform\Fields\InlineRadioGroup;
 use mindplay\kissform\Fields\IntField;
@@ -216,12 +217,34 @@ class FieldRenderCest
 
         $field = new IntField("value");
 
-        $I->assertSame('<input class="form-control" name="value" type="number"/>', $form->render($field));
+        $I->assertSame('<input class="form-control" name="value" pattern="-?\d*" type="number"/>', $form->render($field));
+
+        $field->min_value = -1;
+
+        $I->assertSame('<input class="form-control" min="-1" name="value" pattern="-?\d*" type="number"/>', $form->render($field));
 
         $field->min_value = 1;
         $field->max_value = 99;
 
-        $I->assertSame('<input class="form-control" max="99" min="1" name="value" type="number"/>', $form->render($field));
+        $I->assertSame('<input class="form-control" max="99" min="1" name="value" pattern="\d*" type="number"/>', $form->render($field));
+    }
+
+    public function renderFloatField(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $field = new FloatField("value");
+
+        $I->assertSame('<input class="form-control" name="value" pattern="-?\d*(\.(?=\d))?\d*" type="number"/>', $form->render($field));
+
+        $field->min_value = -1;
+
+        $I->assertSame('<input class="form-control" min="-1" name="value" pattern="-?\d*(\.(?=\d))?\d*" type="number"/>', $form->render($field));
+
+        $field->min_value = 1;
+        $field->max_value = 99;
+
+        $I->assertSame('<input class="form-control" max="99" min="1" name="value" pattern="\d*(\.(?=\d))?\d*" type="number"/>', $form->render($field));
     }
 
     public function renderDateTimeField(UnitTester $I)
