@@ -6,7 +6,6 @@ use mindplay\kissform\Facets\ValidatorInterface;
 use mindplay\kissform\Fields\TextField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
-use mindplay\kissform\Validators\CheckInt;
 use mindplay\kissform\Validators\CheckMaxValue;
 use mindplay\kissform\Validators\CheckMinValue;
 use mindplay\kissform\Validators\CheckRange;

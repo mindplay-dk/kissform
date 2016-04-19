@@ -9,7 +9,6 @@ use mindplay\kissform\Fields\Base\TimeZoneAwareField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckParser;
-use mindplay\lang;
 use UnexpectedValueException;
 
 /**

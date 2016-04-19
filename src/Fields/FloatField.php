@@ -7,7 +7,6 @@ use mindplay\kissform\Fields\Base\NumericField;
 use mindplay\kissform\InputModel;
 use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckFloat;
-use mindplay\kissform\Validators\CheckInt;
 use UnexpectedValueException;
 
 /**
