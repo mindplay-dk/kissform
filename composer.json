@@ -2,7 +2,7 @@
     "name": "mindplay/kissform",
     "type": "library",
     "description": "Model-driven form rendering and input validation",
-    "license": "LGPL-3.0+",
+    "license": "MIT",
     "authors": [
         {
             "name": "Rasmus Schultz",
@@ -11,16 +11,13 @@
     ],
     "require": {
         "php": ">=5.5",
-        "mindplay/lang": "dev-master"
+        "mindplay/lang": "^1.1"
     },
     "require-dev": {
         "phpunit/php-code-coverage": ">=2, <4",
         "codeception/codeception": "^2"
     },
     "autoload": {
-        "files": [
-            "src/bootstrap.php"
-        ],
         "psr-4": {
             "mindplay\\kissform\\": "src/"
         }

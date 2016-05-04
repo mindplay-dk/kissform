@@ -142,11 +142,6 @@ It deliberately does not implement any of the following:
  * Form layout: there are too many possible variations, and it's just HTML, which
    is really easy to do in the first place - it's not worthwhile.
 
- * Language selection: again, too many scenarios - you could be checking browser
-   headers, domain-names or a user-defined setting, that's your business; using
-   dependency injection, you should have no trouble injecting the required set
-   of language constants in a multi-language scenario.
-
  * A plugin architecture: you don't need one - just use everyday OO patterns to
    solve problems like a thrifty programmer. Extend the renderer and validator
    as needed for your business/project/module/scenario/model, etc.
