@@ -148,7 +148,7 @@ class InputRenderer
      * @param string|string[]|null  $collection_name collection name(s) for inputs, e.g. 'myform' or ['myform', '123'] etc.
      * @param string|null           $id_prefix       base id for inputs, e.g. 'myform' or 'myform-123', etc.
      */
-    public function __construct($model = null, $collection_name = null, $id_prefix = null)
+    public function __construct($model = null, $collection_name = null, $id_prefix = "form")
     {
         $this->model = InputModel::create($model);
         $this->collection_name = $collection_name;

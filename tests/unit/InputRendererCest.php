@@ -15,21 +15,24 @@ class InputRendererCest
         $form = new InputRenderer();
         $field = new TextField('text');
 
-        $I->assertSame('<input class="form-control foo bar" name="text" type="text"/>',
+        $I->assertSame('<input class="form-control foo bar" id="form-text" name="text" type="text"/>',
             $form->render($field, ['class' => ['foo', 'bar']]), 'folds multi-valued class attribute');
-        $I->assertSame('<input class="form-control" name="text" readonly type="text"/>',
+        $I->assertSame('<input class="form-control" id="form-text" name="text" readonly type="text"/>',
             $form->render($field, ['readonly' => true]), 'handles boolean TRUE attribute value');
-        $I->assertSame('<input class="form-control" name="text" type="text"/>',
+        $I->assertSame('<input class="form-control" id="form-text" name="text" type="text"/>',
             $form->render($field, ['readonly' => false]), 'handles boolean FALSE attribute value');
-        $I->assertSame('<input class="form-control" name="text" type="text"/>',
+        $I->assertSame('<input class="form-control" id="form-text" name="text" type="text"/>',
             $form->render($field, ['foo' => null]), 'filters NULL-value attributes');
 
         $form->xhtml = true;
-        $I->assertSame('<input class="form-control" name="text" readonly="readonly" type="text"/>',
+        $I->assertSame('<input class="form-control" id="form-text" name="text" readonly="readonly" type="text"/>',
             $form->render($field, ['readonly' => true]), 'renders value-less attributes as valid XHTML');
         $form->xhtml = false;
 
         $I->assertSame('text', $form->getName($field), 'name without prefix');
+        
+        $form->id_prefix = null;
+        
         $I->assertSame(null, $form->getId($field), 'no id attribute when $id_prefix is NULL');
 
         $form->collection_name = 'form';
@@ -126,7 +129,7 @@ class InputRendererCest
         $I->assertSame('<div data-foo="bar">foo &amp; bar</div>',
             $form->divFor($field, 'foo &amp; bar', ['data-foo' => 'bar']));
 
-        $I->assertSame('<div data-div="bar"><input class="form-control" data-input="foo" name="text" type="text"/></div>',
+        $I->assertSame('<div data-div="bar"><input class="form-control" data-input="foo" id="form-text" name="text" type="text"/></div>',
             $form->renderDiv($field, ['data-input' => 'foo'], ['data-div' => 'bar']));
 
         $field->setRequired(true);
@@ -136,7 +139,7 @@ class InputRendererCest
         $I->assertSame('<div class="required has-error" data-foo="bar">foo &amp; bar</div>',
             $form->divFor($field, 'foo &amp; bar', ['data-foo' => 'bar']));
 
-        $I->assertSame('<div class="required has-error foo bar"><input class="form-control foo" name="text" required type="text"/></div>',
+        $I->assertSame('<div class="required has-error foo bar"><input class="form-control foo" id="form-text" name="text" required type="text"/></div>',
             $form->renderDiv($field, ['class' => 'foo'], ['class' => ['foo', 'bar']]));
     }
 
@@ -166,7 +169,7 @@ class InputRendererCest
 
     public function renderLabelTags(UnitTester $I)
     {
-        $form = new InputRenderer();
+        $form = new InputRenderer(null, null, null);
         $field = new TextField('text');
 
         $I->assertException(
@@ -225,7 +228,7 @@ class InputRendererCest
 
         $form->setPlaceholder($field, "Hello");
 
-        $I->assertSame('<input class="form-control" name="test" placeholder="Hello" type="text"/>', $form->render($field));
+        $I->assertSame('<input class="form-control" id="form-test" name="test" placeholder="Hello" type="text"/>', $form->render($field));
     }
 
     public function overrideRequired(UnitTester $I)
@@ -236,7 +239,7 @@ class InputRendererCest
 
         $form->setRequired($field);
 
-        $I->assertSame('<div class="required"><input class="form-control" name="test" required type="text"/></div>', $form->renderDiv($field));
+        $I->assertSame('<div class="required"><input class="form-control" id="form-test" name="test" required type="text"/></div>', $form->renderDiv($field));
     }
 
     public function buildInput(UnitTester $I)
