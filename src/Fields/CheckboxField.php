@@ -8,7 +8,13 @@ use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckAccept;
 
 /**
- * This class represents a labeled checkbox structure, e.g. span.checkbox > label > input
+ * This class represents a labeled checkbox structure, e.g. `div.checkbox` with an `input` and
+ * matching `label` tag inside.
+ *
+ * Note that the markup deviates from Bootstrap standard markup, which isn't useful for styling.
+ *
+ * @link https://github.com/twbs/bootstrap/issues/19931
+ * @link https://github.com/flatlogic/awesome-bootstrap-checkbox
  */
 class CheckboxField extends Field
 {
@@ -34,10 +40,13 @@ class CheckboxField extends Field
     {
         $label = $renderer->getLabel($this);
 
+        $id = $renderer->getId($this);
+        
         $input = $renderer->tag(
             'input',
             $attr + [
                 'name'    => $renderer->getName($this),
+                'id'      => $id,
                 'value'   => $this->checked_value,
                 'checked' => $model->getInput($this) === $this->checked_value,
                 'type'    => 'checkbox',
@@ -46,10 +55,11 @@ class CheckboxField extends Field
 
         return
             ($this->wrapper_class ? '<div class="' . $this->wrapper_class . '">' : '')
-            . ($label ? $renderer->tag('label', [], $input . $renderer->softEscape($label)) : $input)
+            . $input
+            . ($label ? $renderer->tag('label', ['for' => $id], $renderer->softEscape($label)) : '')
             . ($this->wrapper_class ? '</div>' : '');
     }
-
+    
     /**
      * @param InputModel $model
      *

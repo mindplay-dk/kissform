@@ -224,13 +224,14 @@ class InputRenderer
 
     /**
      * @param FieldInterface $field
+     * @param string|null    $suffix
      *
      * @return string|null computed id-attribute
      */
-    public function getId(FieldInterface $field)
+    public function getId(FieldInterface $field, $suffix = null)
     {
         return $this->id_prefix
-            ? $this->id_prefix . '-' . $field->getName()
+            ? $this->id_prefix . '-' . $field->getName() . ($suffix ? "-{$suffix}" : '')
             : null;
     }
 

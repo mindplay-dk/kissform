@@ -8,7 +8,12 @@ use mindplay\kissform\InputRenderer;
 use mindplay\kissform\Validators\CheckSelected;
 
 /**
- * This class provides information about a group of <input type="radio"> elements.
+ * This class provides information about a group of `<input type="radio">` elements.
+ *
+ * Note that the markup deviates from Bootstrap standard markup, which isn't useful for styling.
+ *
+ * @link https://github.com/twbs/bootstrap/issues/19931
+ * @link https://github.com/flatlogic/awesome-bootstrap-checkbox
  */
 class RadioGroup extends Field
 {
@@ -70,27 +75,30 @@ class RadioGroup extends Field
                 ? $value == $selected // loose comparison works well for NULLs and numbers
                 : $value === $selected; // strict comparison for everything else
 
-            $tag = $renderer->tag(
+            $id = $renderer->getId($this, $value);
+
+            $group = $renderer->tag(
                 'input',
                 $renderer->mergeAttrs(
                     [
-                        'type' => 'radio',
-                        'name' => $renderer->getName($this),
-                        'value' => $value,
-                        'checked' => $checked
+                        'type'    => 'radio',
+                        'id'      => $id,
+                        'name'    => $renderer->getName($this),
+                        'value'   => $value,
+                        'checked' => $checked,
                     ],
                     $this->input_attr,
                     $attr
                 )
             );
 
-            $tag = $renderer->tag('label', $this->label_attr, $tag . ' ' . $renderer->escape($label));
-
+            $group .= $renderer->tag('label', $this->label_attr + ['for' => $id], $renderer->softEscape($label));
+            
             if ($this->wrapper_tag) {
-                $tag = $renderer->tag($this->wrapper_tag, $this->wrapper_attr, $tag);
+                $group = $renderer->tag($this->wrapper_tag, $this->wrapper_attr, $group);
             }
 
-            $html .= $tag;
+            $html .= $group;
         }
 
         return $html;

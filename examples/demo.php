@@ -103,6 +103,12 @@ $form = new InputRenderer($model, 'form');
     <title>Donation Form</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+    <style>
+        /* note that bootstrap's checkbox/radio markup prevents styling - see: https://github.com/twbs/bootstrap/issues/19931 */
+        .radio input[type=radio], .radio-inline input[type=radio], .checkbox input[type=checkbox], .checkbox-inline input[type=checkbox] {
+            margin-left: 0;
+        }
+    </style>
 </head>
 
 <body>

@@ -114,24 +114,24 @@ class FieldRenderCest
         $form = new InputRenderer(null, 'form');
         $field = new CheckboxField('bool');
 
-        $I->assertSame('<div class="checkbox"><input name="form[bool]" type="checkbox" value="1"/></div>',
+        $I->assertSame('<div class="checkbox"><input id="form-bool" name="form[bool]" type="checkbox" value="1"/></div>',
             $form->render($field));
 
         $field->label = 'I agree';
 
-        $I->assertSame('<div class="checkbox"><label><input name="form[bool]" type="checkbox" value="1"/>I agree</label></div>',
+        $I->assertSame('<div class="checkbox"><input id="form-bool" name="form[bool]" type="checkbox" value="1"/><label for="form-bool">I agree</label></div>',
             $form->render($field));
 
         $field->wrapper_class = null;
 
-        $I->assertSame('<label><input name="form[bool]" type="checkbox" value="1"/>I agree</label>',
+        $I->assertSame('<input id="form-bool" name="form[bool]" type="checkbox" value="1"/><label for="form-bool">I agree</label>',
             $form->render($field));
 
         $I->assertSame(false, $field->getValue($form->model), 'unchecked exposed as FALSE in the model');
 
         $field->setValue($form->model, true);
 
-        $I->assertSame('<label><input checked name="form[bool]" type="checkbox" value="1"/>I agree</label>',
+        $I->assertSame('<input checked id="form-bool" name="form[bool]" type="checkbox" value="1"/><label for="form-bool">I agree</label>',
             $form->render($field));
 
         $I->assertSame(true, $field->getValue($form->model), 'checked exposed as TRUE in the model');
@@ -139,7 +139,7 @@ class FieldRenderCest
         $form->setLabel($field, null);
 
         $I->assertSame(
-            '<input checked name="form[bool]" type="checkbox" value="1"/>',
+            '<input checked id="form-bool" name="form[bool]" type="checkbox" value="1"/>',
             $form->render($field),
             'can suppress label tag'
         );
@@ -175,40 +175,27 @@ class FieldRenderCest
 
     public function renderRadioGroups(UnitTester $I)
     {
-        $form = new InputRenderer();
+        $form = new InputRenderer(null, null, "form");
 
         $field = new RadioGroup('value', [
             '1' => 'Option One',
             '2' => 'Option Two',
         ]);
 
-        $I->assertSame('<div class="radio"><label><input name="value" type="radio" value="1"/> Option One</label></div><div class="radio"><label><input name="value" type="radio" value="2"/> Option Two</label></div>',
+        $I->assertSame('<div class="radio"><input id="form-value-1" name="value" type="radio" value="1"/><label for="form-value-1">Option One</label></div><div class="radio"><input id="form-value-2" name="value" type="radio" value="2"/><label for="form-value-2">Option Two</label></div>',
             $form->render($field));
 
         $field->setValue($form->model, 1);
 
-        $I->assertSame('<div class="radio"><label><input checked name="value" type="radio" value="1"/> Option One</label></div><div class="radio"><label><input name="value" type="radio" value="2"/> Option Two</label></div>',
+        $I->assertSame('<div class="radio"><input checked id="form-value-1" name="value" type="radio" value="1"/><label for="form-value-1">Option One</label></div><div class="radio"><input id="form-value-2" name="value" type="radio" value="2"/><label for="form-value-2">Option Two</label></div>',
             $form->render($field));
 
-        // inline variation:
+        // disabled wrapper tags:
 
-        $form = new InputRenderer();
+        $field->wrapper_tag = null;
 
-        $field = new InlineRadioGroup('value', [
-            '1' => 'Option One',
-            '2' => 'Option Two',
-        ]);
-
-        $I->assertSame('<label class="radio-inline"><input name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input name="value" type="radio" value="2"/> Option Two</label>',
+        $I->assertSame('<input checked id="form-value-1" name="value" type="radio" value="1"/><label for="form-value-1">Option One</label><input id="form-value-2" name="value" type="radio" value="2"/><label for="form-value-2">Option Two</label>',
             $form->render($field));
-
-        $field->setValue($form->model, 1);
-
-        $I->assertSame('<label class="radio-inline"><input checked name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input name="value" type="radio" value="2"/> Option Two</label>',
-            $form->render($field));
-
-        $I->assertSame('<label class="radio-inline"><input checked class="foo" name="value" type="radio" value="1"/> Option One</label><label class="radio-inline"><input class="foo" name="value" type="radio" value="2"/> Option Two</label>',
-            $form->render($field, ['class' => 'foo']));
     }
 
     public function renderIntField(UnitTester $I)
