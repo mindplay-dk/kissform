@@ -32,15 +32,15 @@ abstract class NumericField extends TextField
     {
         $defaults = [];
 
-        if ($this->max_length) {
+        if ($this->max_length !== null) {
             $defaults['maxlength'] = $this->max_length;
         }
 
-        if ($this->min_value) {
+        if ($this->min_value !== null) {
             $defaults['min'] = $this->min_value;
         }
 
-        if ($this->max_value) {
+        if ($this->max_value !== null) {
             $defaults['max'] = $this->max_value;
         }
 
