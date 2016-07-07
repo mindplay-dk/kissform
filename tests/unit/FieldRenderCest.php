@@ -8,7 +8,6 @@ use mindplay\kissform\Fields\DateTimeField;
 use mindplay\kissform\Fields\EmailField;
 use mindplay\kissform\Fields\FloatField;
 use mindplay\kissform\Fields\HiddenField;
-use mindplay\kissform\Fields\InlineRadioGroup;
 use mindplay\kissform\Fields\IntField;
 use mindplay\kissform\Fields\PasswordField;
 use mindplay\kissform\Fields\RadioGroup;
@@ -214,6 +213,12 @@ class FieldRenderCest
         $field->max_value = 99;
 
         $I->assertSame('<input class="form-control" id="form-value" max="99" min="1" name="value" pattern="\d*" type="number"/>', $form->render($field));
+
+        $field->min_value = 0;
+        $field->max_value = 0;
+        $field->max_length = 0;
+
+        $I->assertSame('<input class="form-control" id="form-value" max="0" maxlength="0" min="0" name="value" pattern="\d*" type="number"/>', $form->render($field));
     }
 
     public function renderFloatField(UnitTester $I)
@@ -232,6 +237,12 @@ class FieldRenderCest
         $field->max_value = 99;
 
         $I->assertSame('<input class="form-control" id="form-value" max="99" min="1" name="value" pattern="\d*(\.(?=\d))?\d*" type="number"/>', $form->render($field));
+
+        $field->min_value = 0;
+        $field->max_value = 0;
+        $field->max_length = 0;
+
+        $I->assertSame('<input class="form-control" id="form-value" max="0" maxlength="0" min="0" name="value" pattern="\d*(\.(?=\d))?\d*" type="number"/>', $form->render($field));
     }
 
     public function renderDateTimeField(UnitTester $I)
