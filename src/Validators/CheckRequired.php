@@ -31,7 +31,7 @@ class CheckRequired implements ValidatorInterface
         if ($model->getInput($field) === null) {
             $model->setError(
                 $field,
-                $this->error ?: lang::text("mindplay/kissform", "checked", ["field" => $validation->getLabel($field)])
+                $this->error ?: lang::text("mindplay/kissform", "required", ["field" => $validation->getLabel($field)])
             );
         }
     }
