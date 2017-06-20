@@ -111,7 +111,28 @@ if ($model->isValid()) {
 
 Note that only one error is recorded per field - the first one encountered.
 
-This demonstrates the most basic pattern - please see the [demo](examples/demo.php) for a working
+Once the input has passed validation, you can extract values from the individual fields:
+
+```php
+$first_name = $form->first_name->getValue($model);
+$last_name = $form->last_name->getValue($model);
+```
+
+To implement editing of existing data with a form, you can also inject state into the form model:
+
+```php
+$form->first_name->setValue($model, "Rasmus");
+$form->last_name->setValue($model, "Schultz");
+```
+
+Note that the `getValue()` and `setValue()` methods of every `Field` type are type-aware - for
+example, the `IntField` returns `int`, `CheckboxField` returns `bool`, and so on.
+
+Only valid values of the appropriate types can be exchanged with Fields in this manner - if you
+need access to possiby-invalid, raw input-values, use the `getInput()` and `setInput()` methods
+of `InputModel` instead.
+
+This demonstrates the most basic patterns - please see the [demo](examples/demo.php) for a working
 example of the post/redirect/get cycle and CSRF protection.
 
 
