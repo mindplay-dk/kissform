@@ -5,6 +5,7 @@ namespace mindplay\kissform\Test;
 use mindplay\kissform\Fields\CheckboxField;
 use mindplay\kissform\Fields\DateSelectField;
 use mindplay\kissform\Fields\DateTimeField;
+use mindplay\kissform\Fields\DateTimeLocalField;
 use mindplay\kissform\Fields\EmailField;
 use mindplay\kissform\Fields\FloatField;
 use mindplay\kissform\Fields\HiddenField;
@@ -251,8 +252,22 @@ class FieldRenderCest
         $field = new DateTimeField('value', 'Europe/Copenhagen', 'Y-m-d H:i:s', ['readonly' => true]);
         $field->setValue($form->model, 173919600);
 
-        $I->assertSame('<input class="form-control" id="form-value" name="value" readonly type="text" value="1975-07-07 00:00:00"/>',
-            $form->render($field));
+        $I->assertSame(
+            '<input class="form-control" id="form-value" name="value" readonly type="text" value="1975-07-07 00:00:00"/>',
+            $form->render($field)
+        );
+    }
+
+    public function renderDateTimeLocalField(UnitTester $I)
+    {
+        $form = new InputRenderer();
+        $field = new DateTimeLocalField('value', 'Europe/Copenhagen', ['readonly' => true]);
+        $field->setValue($form->model, 173919600);
+
+        $I->assertSame(
+            '<input class="form-control" id="form-value" name="value" readonly type="datetime-local" value="1975-07-07T00:00"/>',
+            $form->render($field)
+        );
     }
 
     public function renderDateSelector(UnitTester $I)
