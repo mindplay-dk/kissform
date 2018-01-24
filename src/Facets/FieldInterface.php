@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Rasmus Schultz
- * Date: 1/12/2016
- * Time: 11:19 AM
- */
+
 namespace mindplay\kissform\Facets;
 
 use mindplay\kissform\InputModel;
