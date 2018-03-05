@@ -154,6 +154,8 @@ This library has other expected and useful features, including:
 
  * Default error messages can be localized/customized.
 
+ * A basic error-summary can be generated with `InputRenderer::errorSummary()`.
+
 It deliberately does not implement any of the following:
 
  * Trivial elements: things like `<form>`, `<fieldset>` and `<legend>` - you don't

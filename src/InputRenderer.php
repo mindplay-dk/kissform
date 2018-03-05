@@ -103,6 +103,13 @@ class InputRenderer
     public $group_attrs = ['class' => 'form-group'];
 
     /**
+     * @var string error summary CSS class-name
+     *
+     * @see errorSummary()
+     */
+    public $error_summary_class = "error-summary";
+
+    /**
      * @var string[] map where Field name => label override
      */
     protected $labels = [];
@@ -707,5 +714,38 @@ class InputRenderer
         }
 
         return $this->label($id, $label);
+    }
+
+    /**
+     * Build an HTML error summary, if there are any errors. (otherwise, returns an empty string.)
+     *
+     * Typically this is used at the end of a form (above the submit button) to call
+     * attention to the fact that some inputs failed validation - this is meaningful
+     * on long forms with many inputs, where the user might not immediately notice
+     * a single input that has been highlighted with an error state.
+     *
+     * @return string error summary (or an empty string, if the current model contains no errors)
+     */
+    public function errorSummary()
+    {
+        if (! $this->model->hasErrors()) {
+            return "";
+        }
+
+        $errors = implode(
+            "",
+            array_map(
+                function ($str) {
+                    return "<li>" . $this->escape($str) . "</li>";
+                },
+                $this->model->getErrors()
+            )
+        );
+
+        return $this->tag(
+            "div",
+            ["class" => $this->error_summary_class],
+            "<ul>{$errors}</ul>"
+        );
     }
 }
