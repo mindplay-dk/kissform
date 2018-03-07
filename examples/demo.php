@@ -95,6 +95,8 @@ if (isset($_POST['form'])) {
 
 $form = new InputRenderer($model, 'form');
 
+$form->error_summary_class = "alert alert-danger"; // this example uses a basic bootstrap alert for the error-summary
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -131,15 +133,7 @@ $form = new InputRenderer($model, 'form');
         </form>
     <?php endif ?>
 
-    <?php if ($model->hasErrors()): ?>
-        <div class="alert alert-danger">
-            <ul>
-                <?php foreach ($model->getErrors() as $error): ?>
-                    <li><?= $error ?></li>
-                <?php endforeach ?>
-            </ul>
-        </div>
-    <?php endif ?>
+    <?= $form->errorSummary() ?>
 
 </div>
 

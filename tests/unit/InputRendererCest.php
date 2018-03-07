@@ -248,4 +248,22 @@ class InputRendererCest
 
         $I->assertSame('<input data-bat="baz" name="foo" type="hidden" value="bar"/>', $form->input("hidden", "foo", "bar", ["data-bat" => "baz"]));
     }
+
+    public function buildErrorSummary(UnitTester $I)
+    {
+        $form = new InputRenderer();
+
+        $field = new TextField("test");
+
+        $field->setLabel("Something");
+
+        $expected_error_message = "Unacceptable, Sir!";
+
+        $form->model->setError($field, $expected_error_message);
+
+        $I->assertSame(
+            "<div class=\"error-summary\" role=\"alert\"><ul><li>{$expected_error_message}</li></ul></div>",
+            $form->errorSummary()
+        );
+    }
 }
