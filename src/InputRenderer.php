@@ -744,7 +744,10 @@ class InputRenderer
 
         return $this->tag(
             "div",
-            ["class" => $this->error_summary_class],
+            [
+                "role" => "alert",
+                "class" => $this->error_summary_class
+            ],
             "<ul>{$errors}</ul>"
         );
     }
