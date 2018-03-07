@@ -262,7 +262,7 @@ class InputRendererCest
         $form->model->setError($field, $expected_error_message);
 
         $I->assertSame(
-            "<div role=\"alert\" class=\"error-summary\"><ul><li>{$expected_error_message}</li></ul></div>",
+            "<div class=\"error-summary\" role=\"alert\"><ul><li>{$expected_error_message}</li></ul></div>",
             $form->errorSummary()
         );
     }
