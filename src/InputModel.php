@@ -120,7 +120,7 @@ class InputModel
      * error messages in order of importance.
      *
      * @param FieldInterface|string $field the field for which to set an error-message
-     * @param string|string[]       $error error message (or map of error-messages)
+     * @param string                $error error message
      *
      * @return void
      */
